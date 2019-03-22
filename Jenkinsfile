@@ -4,6 +4,8 @@ pipeline {
     PROJECT_NAME = 'ehealth'
     INSTANCE_TYPE = 'n1-highcpu-16'
     RD = "b${UUID.randomUUID().toString()}"
+    RD_CROP = "b${RD.take(14)}"
+    NAME = "${RD.take(5)}"
   }
   stages {
     stage('Prepare instance') {
@@ -11,7 +13,6 @@ pipeline {
         kubernetes {
           label 'create-instance'
           defaultContainer 'jnlp'
-          instanceCap '4'
         }
       }
       steps {
@@ -36,97 +37,7 @@ pipeline {
         }
       }
     }
-    stage('Test') {
-      environment {
-        MIX_ENV = 'test'
-        DOCKER_NAMESPACE = 'edenlabllc'
-        POSTGRES_VERSION = '9.6'
-        POSTGRES_USER = 'postgres'
-        POSTGRES_PASSWORD = 'postgres'
-        POSTGRES_DB = 'postgres'
-      }
-      agent {
-        kubernetes {
-          label 'ehealth-test'
-          defaultContainer 'jnlp'
-          yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    stage: test
-spec:
-  tolerations:
-  - key: "ci"
-    operator: "Equal"
-    value: "${RD}"
-    effect: "NoSchedule"
-  containers:
-  - name: elixir
-    image: elixir:1.8.1-alpine
-    command:
-    - cat
-    tty: true
-  - name: postgres
-    image: edenlabllc/alpine-postgre:pglogical-gis-1.1
-    ports:
-    - containerPort: 5432
-    tty: true
-  - name: mongo
-    image: mvertes/alpine-mongo:4.0.1-0
-    ports:
-    - containerPort: 27017
-    tty: true
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "50m"
-      limits:
-        memory: "256Mi"
-        cpu: "300m"
-  - name: redis
-    image: redis:4-alpine3.9
-    ports:
-    - containerPort: 6379
-    tty: true
-  - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
-    ports:
-    - containerPort: 2181
-    - containerPort: 9092
-    env:
-    - name: ADVERTISED_HOST
-      valueFrom:
-        fieldRef:
-          fieldPath: status.podIP
-  nodeSelector:
-    node: ${RD}
-"""
-        }
-      }
-      steps {
-        container(name: 'postgres', shell: '/bin/sh') {
-          sh '''
-            sleep 15;
-            psql -U postgres -c "create database ehealth";
-            psql -U postgres -c "create database prm_dev";
-            psql -U postgres -c "create database fraud_dev";
-            psql -U postgres -c "create database event_manager_dev";
-          '''
-        }
-        container(name: 'elixir', shell: '/bin/sh') {
-          sh '''
-            apk update && apk add --no-cache jq curl bash git ncurses-libs zlib ca-certificates openssl make build-base;
-            mix local.hex --force;
-            mix local.rebar --force;
-            mix deps.get;
-            mix deps.compile;
-            curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/tests.sh -o tests.sh; bash ./tests.sh
-          '''
-        }
-      }
-    }
-    stage('Build') {
+    stage('Test and build') {
       environment {
         MIX_ENV = 'test'
         DOCKER_NAMESPACE = 'edenlabllc'
@@ -137,6 +48,117 @@ spec:
       }
       failFast true
       parallel {
+        stage('Test') {
+          environment {
+            MIX_ENV = 'test'
+            DOCKER_NAMESPACE = 'edenlabllc'
+            POSTGRES_VERSION = '9.6'
+            POSTGRES_USER = 'postgres'
+            POSTGRES_PASSWORD = 'postgres'
+            POSTGRES_DB = 'postgres'
+          }
+          agent {
+            kubernetes {
+              label "ehealth-test-$NAME"
+              defaultContainer 'jnlp'
+              yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    stage: test
+spec:
+  tolerations:
+  - key: "ci"
+    operator: "Equal"
+    value: "$RD_CROP"
+    effect: "NoSchedule"
+  containers:
+  - name: elixir
+    image: elixir:1.8.1-alpine
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
+  - name: postgres
+    image: edenlabllc/alpine-postgre:pglogical-gis-1.1
+    ports:
+    - containerPort: 5432
+    tty: true
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
+  - name: mongo
+    image: mvertes/alpine-mongo:4.0.1-0
+    ports:
+    - containerPort: 27017
+    tty: true
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
+  - name: redis
+    image: redis:4-alpine3.9
+    ports:
+    - containerPort: 6379
+    tty: true
+  - name: kafkazookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
+    ports:
+    - containerPort: 2181
+    - containerPort: 9092
+    env:
+    - name: ADVERTISED_HOST
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "10m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
+  nodeSelector:
+    node: "$RD_CROP"
+"""
+            }
+          }
+          steps {
+            container(name: 'postgres', shell: '/bin/sh') {
+              sh '''
+                sleep 15;
+                psql -U postgres -c "create database ehealth";
+                psql -U postgres -c "create database prm_dev";
+                psql -U postgres -c "create database fraud_dev";
+                psql -U postgres -c "create database event_manager_dev";
+              '''
+            }
+            container(name: 'elixir', shell: '/bin/sh') {
+              sh '''
+                apk update && apk add --no-cache jq curl bash git ncurses-libs zlib ca-certificates openssl make build-base;
+                mix local.hex --force;
+                mix local.rebar --force;
+                mix deps.get;
+                mix deps.compile;
+                curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/tests.sh -o tests.sh; bash ./tests.sh
+              '''
+            }
+          }
+        }
         stage('Build ehealth') {
           environment {
             APPS='[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"}]'
@@ -147,7 +169,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'ehealth-build'
+              label "ehealth-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -159,7 +181,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -179,6 +201,13 @@ spec:
     ports:
     - containerPort: 5432
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
     securityContext: 
@@ -186,6 +215,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "8000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -206,8 +242,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -217,7 +260,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -270,7 +313,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'casher-build'
+              label "casher-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -282,7 +325,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -297,11 +340,25 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
   - name: postgres
     image: edenlabllc/alpine-postgre:pglogical-gis-1.1
     ports:
     - containerPort: 5432
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
     securityContext: 
@@ -309,6 +366,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "8000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -329,8 +393,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -340,7 +411,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -393,7 +464,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'graphql-build'
+              label "graphql-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -405,7 +476,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -420,11 +491,25 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
   - name: postgres
     image: edenlabllc/alpine-postgre:pglogical-gis-1.1
     ports:
     - containerPort: 5432
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "1000m"
   - name: dind
     image: docker:18.09.2-dind
     securityContext: 
@@ -432,6 +517,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "2048Mi"
+        cpu: "4000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -452,8 +544,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -463,7 +562,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -516,7 +615,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'merge-legal-entities-consumer-build'
+              label "merge-legal-entities-consumer-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -528,7 +627,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -543,11 +642,25 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
   - name: postgres
     image: edenlabllc/alpine-postgre:pglogical-gis-1.1
     ports:
     - containerPort: 5432
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
   - name: dind
     image: docker:18.09.2-dind
     securityContext: 
@@ -555,6 +668,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "4000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -575,8 +695,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -586,7 +713,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -594,6 +721,9 @@ spec:
             }
           }
           steps {
+            container(name: 'kafkazookeeper', shell: '/bin/sh') {
+              sh 'cd /opt/kafka_2.12-2.1.0/bin && ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic merge_legal_entities'
+            }
             container(name: 'postgres', shell: '/bin/sh') {
               sh '''
               sleep 15;
@@ -605,7 +735,7 @@ spec:
             }
             container(name: 'docker', shell: '/bin/sh') {
               sh 'echo -----Build Docker container for MergeLegalEntities consumer-------'
-              sh 'apk update && apk add --no-cache jq curl bash elixir git ncurses-libs zlib ca-certificates openssl erlang-crypto erlang-runtime-tools;'
+              sh 'apk update && apk add --no-cache jq curl bash elixir git ncurses-libs zlib ca-certificates openssl erlang-crypto make erlang-runtime-tools;'
               sh 'echo " ---- step: Build docker image ---- ";'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/build-container.sh -o build-container.sh; bash ./build-container.sh'
               sh 'echo " ---- step: Start docker container ---- ";'
@@ -639,7 +769,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'deactivate-legal-entity-consumer-build'
+              label "deactivate-legal-entity-consumer-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -651,7 +781,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -666,11 +796,25 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
   - name: postgres
     image: edenlabllc/alpine-postgre:pglogical-gis-1.1
     ports:
     - containerPort: 5432
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
   - name: dind
     image: docker:18.09.2-dind
     securityContext: 
@@ -678,6 +822,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "4000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -698,8 +849,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -709,7 +867,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -717,6 +875,9 @@ spec:
             }
           }
           steps {
+            container(name: 'kafkazookeeper', shell: '/bin/sh') {
+              sh 'cd /opt/kafka_2.12-2.1.0/bin && ./kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic deactivate_legal_entity_event'
+            }
             container(name: 'postgres', shell: '/bin/sh') {
               sh '''
               sleep 15;
@@ -728,7 +889,7 @@ spec:
             }
             container(name: 'docker', shell: '/bin/sh') {
               sh 'echo -----Build Docker container for DeactivateLegalEntities consumer-------'
-              sh 'apk update && apk add --no-cache jq curl bash elixir git ncurses-libs zlib ca-certificates openssl erlang-crypto erlang-runtime-tools;'
+              sh 'apk update && apk add --no-cache jq curl bash elixir git ncurses-libs zlib ca-certificates openssl erlang-crypto make erlang-runtime-tools;'
               sh 'echo " ---- step: Build docker image ---- ";'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/build-container.sh -o build-container.sh; bash ./build-container.sh'
               sh 'echo " ---- step: Start docker container ---- ";'
@@ -762,7 +923,7 @@ spec:
           }
           agent {
             kubernetes {
-              label 'ehealth-scheduler-build'
+              label "ehealth-scheduler-build-$NAME"
               defaultContainer 'jnlp'
               yaml """
 apiVersion: v1
@@ -774,7 +935,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: docker
@@ -789,6 +950,13 @@ spec:
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
   - name: postgres
     image: edenlabllc/alpine-postgre:pglogical-gis-1.1
     ports:
@@ -801,6 +969,13 @@ spec:
     ports:
     - containerPort: 2375
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "4048Mi"
+        cpu: "2000m"
     volumeMounts: 
     - name: docker-graph-storage 
       mountPath: /var/lib/docker
@@ -821,8 +996,15 @@ spec:
     ports:
     - containerPort: 6379
     tty: true
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "50m"
+      limits:
+        memory: "256Mi"
+        cpu: "300m"
   - name: kafkazookeeper
-    image: johnnypark/kafka-zookeeper
+    image: johnnypark/kafka-zookeeper:2.1.0
     ports:
     - containerPort: 2181
     - containerPort: 9092
@@ -832,7 +1014,7 @@ spec:
         fieldRef:
           fieldPath: status.podIP
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
   volumes: 
     - name: docker-graph-storage 
       emptyDir: {}
@@ -901,7 +1083,7 @@ spec:
   tolerations:
   - key: "ci"
     operator: "Equal"
-    value: "${RD}"
+    value: "$RD_CROP"
     effect: "NoSchedule"
   containers:
   - name: kubectl
@@ -910,7 +1092,7 @@ spec:
     - cat
     tty: true
   nodeSelector:
-    node: ${RD}
+    node: "$RD_CROP"
 """
         }
       }
