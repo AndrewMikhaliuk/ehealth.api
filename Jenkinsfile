@@ -13,7 +13,7 @@ pipeline {
         sh '''sudo docker version;
           sudo apt update && sudo apt install -y postgresql-client;
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
-          sleep 20;
+          sleep 25;
           psql -U postgres -h localhost -c "create database ehealth";
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
