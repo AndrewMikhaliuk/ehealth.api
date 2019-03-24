@@ -10,7 +10,8 @@ pipeline {
   stages {
     stage('Init') {
       steps {
-        sh '''sudo docker version;
+        sh '''
+          sudo docker version;
           sudo apt update && sudo apt install -y postgresql-client make build-essential;
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
@@ -29,6 +30,28 @@ pipeline {
           mix deps.get;
           mix deps.compile;
         '''
+      }
+    }
+    stage('Test and build') {
+      environment {
+        MIX_ENV = 'test'
+        DOCKER_NAMESPACE = 'edenlabllc'
+        POSTGRES_VERSION = '9.6'
+        POSTGRES_USER = 'postgres'
+        POSTGRES_PASSWORD = 'postgres'
+        POSTGRES_DB = 'postgres'
+      }
+      failFast true
+      parallel {
+        stage('Test') {
+          steps {
+            sh '''
+              (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/tests.sh -o tests.sh; bash ./tests.sh) || exit 1;
+              cd apps/graphql && mix white_bread.run
+              if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;
+              '''
+          }
+        }
       }
     }
   }
