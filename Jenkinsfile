@@ -6,6 +6,12 @@ pipeline {
   }
   environment {
     PROJECT_NAME = 'ehealth'
+    MIX_ENV = 'test'
+    DOCKER_NAMESPACE = 'edenlabllc'
+    POSTGRES_VERSION = '9.6'
+    POSTGRES_USER = 'postgres'
+    POSTGRES_PASSWORD = 'postgres'
+    POSTGRES_DB = 'postgres'
   }
   stages {
     stage('Init') {
@@ -33,14 +39,6 @@ pipeline {
       }
     }
     stage('Test and build') {
-      environment {
-        MIX_ENV = 'test'
-        DOCKER_NAMESPACE = 'edenlabllc'
-        POSTGRES_VERSION = '9.6'
-        POSTGRES_USER = 'postgres'
-        POSTGRES_PASSWORD = 'postgres'
-        POSTGRES_DB = 'postgres'
-      }
       failFast true
       parallel {
         stage('Test') {
@@ -50,6 +48,21 @@ pipeline {
               cd apps/graphql && mix white_bread.run
               if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;
               '''
+          }
+        }
+        stage('Build ehealth-app') {
+          environment {
+            APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"}]'
+          }
+          steps {
+            sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/build-container.sh -o build-container.sh; bash ./build-container.sh'
+            sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; bash ./start-container.sh'
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh; bash ./push-changes.sh'
+            }
+            sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/autodeploy.sh -o autodeploy.sh; bash ./autodeploy.sh.sh'
+
           }
         }
       }
