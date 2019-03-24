@@ -15,7 +15,7 @@ pipeline {
           }
       }
       steps {
-        sh 'docker version'
+        sh 'sudo docker version'
         sh 'echo $PROJECT_NAME'
       }
     }
