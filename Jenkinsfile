@@ -13,10 +13,10 @@ pipeline {
         sh '''sudo docker version;
           sudo apt update && sudo apt install -y postgresql-client;
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
-          psql -U postgres -c "create database ehealth";
-          psql -U postgres -c "create database prm_dev";
-          psql -U postgres -c "create database fraud_dev";
-          psql -U postgres -c "create database event_manager_dev";
+          psql -U postgres -h localhost -c "create database ehealth";
+          psql -U postgres -h localhost -c "create database prm_dev";
+          psql -U postgres -h localhost -c "create database fraud_dev";
+          psql -U postgres -h localhost -c "create database event_manager_dev";
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
           sudo docker run -d --name redis -p 6379:6379 redis:4-alpine3.9;
           sudo docker run -d --name kafkazookeeper -p 2181:2181 -p 9092:9092 edenlabllc/kafka-zookeeper:2.1.0;
