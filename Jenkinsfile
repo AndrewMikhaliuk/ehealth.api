@@ -18,14 +18,13 @@ pipeline {
       steps {
         sh '''
           sudo apt update && sudo apt install -y postgresql-client make build-essential jq redis-server;
+          sudo echo "listen_addresses = '*'" >> /etc/postgresql/10/main/postgresql.conf;
+          sudo echo "host all all 0.0.0.0/0 trust" >> /etc/postgresql/10/main/pg_hba.conf;
+          sudo systemctl restart postgresql;
           psql -U postgres -h localhost -c "create database ehealth";
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
           psql -U postgres -h localhost -c "create database event_manager_dev";
-        '''
-        sh '''
-          curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/init-db.sh -o init-db.sh;
-          sudo sh ./init-db.sh
         '''
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/install-mongodb.sh -o install-mongodb.sh; 
