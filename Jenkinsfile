@@ -17,7 +17,10 @@ pipeline {
     stage('Init') {
       steps {
         sh '''
+          sudo groupadd docker;
           sudo usermod -aG docker $(whoami);
+          sudo gpasswd -a jenkins docker;
+          sudo service docker restart;
           sudo systemctl restart docker;
           docker version;
           env;
