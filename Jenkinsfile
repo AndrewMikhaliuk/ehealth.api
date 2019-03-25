@@ -42,7 +42,6 @@ pipeline {
         stage('Test') {
           steps {
             sh '''
-              mongo --version;
               (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/tests.sh -o tests.sh; bash ./tests.sh) || exit 1;
               cd apps/graphql && mix white_bread.run
               if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;
