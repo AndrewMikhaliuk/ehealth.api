@@ -65,11 +65,170 @@ pipeline {
               chmod +x ./start-container.sh; 
               ./start-container.sh;
             '''
-            // withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-            //   sh 'echo " ---- step: Push docker image ---- ";'
-            //   sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh; sudo bash ./push-changes.sh'
-            // }
-            // sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/autodeploy.sh -o autodeploy.sh; bash ./autodeploy.sh'
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build casher-app') {
+          environment {
+            APPS = '[{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build graphql-app') {
+          environment {
+            APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build merge-legal-entities-consumer-app') {
+          environment {
+            APPS = '[{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build deactivate-legal-entity-consumer-app') {
+          environment {
+            APPS = '[{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build edr-validations-consumer-app') {
+          environment {
+            APPS = '[{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
+          }
+        }
+        stage('Build ehealth-scheduler-app') {
+          environment {
+            APPS = '[{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
+          }
+          steps {
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
+            '''
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+            '''
+            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+              sh 'echo " ---- step: Push docker image ---- ";'
+              sh '''
+                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
+                  chmod +x ./push-changes.sh;
+                  sudo sh ./push-changes.sh
+                '''
+            }
           }
         }
       }
