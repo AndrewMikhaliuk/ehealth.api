@@ -55,29 +55,17 @@ pipeline {
           }
           steps {
             sh '''
-              export PROJECT_DIR=${WORKSPACE};
-              set -e
-              echo "Current branch: ${GIT_BRANCH}";
-              for row in $(echo "${APPS}" | jq -c '.[]'); do
-                  APP_NAME=$(echo "${row}" | jq -r '.app')
-                  DOCKERFILE=$(echo "${row}" | jq -r 'if .dockerfile then .dockerfile else "Dockerfile" end')
-
-                  echo "[I] Building a Docker container for '$APP_NAME' application";
-                  echo "docker build --tag \"${DOCKER_NAMESPACE}/$APP_NAME:$GIT_COMMIT\""
-                  echo "    --file \"${PROJECT_DIR}/${DOCKERFILE}\""
-                  echo "    --build-arg APP_NAME=$APP_NAME"
-                  echo "    \"$PROJECT_DIR\""
-                  
-                  sudo docker build --tag "${DOCKER_NAMESPACE}/$APP_NAME:$GIT_COMMIT" \
-                          --file "${PROJECT_DIR}/${DOCKERFILE}" \
-                          --build-arg APP_NAME=$APP_NAME \
-                          "$PROJECT_DIR";
-
-                  echo
-              done
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+              chmod +x ./build-container.sh;
+              ./build-container.sh;
+              rm build-container.sh
             '''
-            // sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/build-container.sh -o build-container.sh; sudo chmod 700 ./build-container.sh; sudo bash ./build-container.sh'
-            // sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/start-container.sh -o start-container.sh; sudo chmod 700 ./start-container.sh; sudo bash ./start-container.sh'
+            sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+              chmod +x ./start-container.sh; 
+              ./start-container.sh;
+              rm start-container.sh
+            '''
             // withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
             //   sh 'echo " ---- step: Push docker image ---- ";'
             //   sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh; sudo bash ./push-changes.sh'
