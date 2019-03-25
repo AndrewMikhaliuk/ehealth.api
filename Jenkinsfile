@@ -8,7 +8,7 @@ pipeline {
     PROJECT_NAME = 'ehealth'
     MIX_ENV = 'test'
     DOCKER_NAMESPACE = 'edenlabllc'
-    POSTGRES_VERSION = '9.6'
+    POSTGRES_VERSION = '10'
     POSTGRES_USER = 'postgres'
     POSTGRES_PASSWORD = 'postgres'
     POSTGRES_DB = 'postgres'
@@ -22,6 +22,10 @@ pipeline {
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
           psql -U postgres -h localhost -c "create database event_manager_dev";
+        '''
+        sh '''
+          curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/init-db.sh -o init-db.sh;
+          sudo sh ./init-db.sh
         '''
         sh '''
           curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/install-mongodb.sh -o install-mongodb.sh; 
