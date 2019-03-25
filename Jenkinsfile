@@ -34,6 +34,12 @@ pipeline {
           kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic deactivate_legal_entity_event;
           kafka/bin/kafka-topics.sh --create --partitions 1 --replication-factor 1 --zookeeper localhost:2181 --topic edr_verification_events
         '''
+        sh '''
+          mix local.hex --force;
+          mix local.rebar --force;
+          mix deps.get;
+          mix deps.compile;
+        '''
       }
     }
     stage('Test and build') {
