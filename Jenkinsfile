@@ -23,6 +23,10 @@ pipeline {
           PGPASSWORD=postgres psql -U postgres -h localhost -c "create database fraud_dev";
           PGPASSWORD=postgres psql -U postgres -h localhost -c "create database event_manager_dev";
         '''
+        sh '''
+        curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_v2/install-mongodb.sh -o install-mongodb.sh; 
+        sudo sh ./install-mongodb.sh
+        '''
       }
     }
     // stage('Test and build') {
