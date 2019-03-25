@@ -17,7 +17,7 @@ pipeline {
     stage('Init') {
       steps {
         sh '''
-          sudo apt update && sudo apt install -y postgresql-client make build-essential jq;
+          sudo apt update && sudo apt install -y postgresql-client make build-essential jq redis-server;
           psql -U postgres -h localhost -c "create database ehealth";
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
