@@ -18,10 +18,10 @@ pipeline {
       steps {
         sh '''
           sudo apt update && sudo apt install -y postgresql-client make build-essential jq;
-          psql -U postgres -h localhost -c "create database ehealth";
-          psql -U postgres -h localhost -c "create database prm_dev";
-          psql -U postgres -h localhost -c "create database fraud_dev";
-          psql -U postgres -h localhost -c "create database event_manager_dev";
+          PGPASSWORD=postgres psql -U postgres -h localhost -c "create database ehealth";
+          PGPASSWORD=postgres psql -U postgres -h localhost -c "create database prm_dev";
+          PGPASSWORD=postgres psql -U postgres -h localhost -c "create database fraud_dev";
+          PGPASSWORD=postgres psql -U postgres -h localhost -c "create database event_manager_dev";
         '''
       }
     }
