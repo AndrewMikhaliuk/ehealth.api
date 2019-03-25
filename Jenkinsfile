@@ -58,7 +58,6 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;
-              rm build-container.sh
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -83,8 +82,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
-              ./build-container.sh;
-              rm build-container.sh
+              ./build-container.sh;  
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -110,7 +108,6 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;
-              rm build-container.sh
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -136,7 +133,7 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;
-              rm build-container.sh
+              
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -161,8 +158,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
-              ./build-container.sh;
-              rm build-container.sh
+              ./build-container.sh; 
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -188,7 +184,6 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;
-              rm build-container.sh
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -214,7 +209,6 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;
-              rm build-container.sh
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
