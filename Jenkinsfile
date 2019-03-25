@@ -61,8 +61,8 @@ pipeline {
               sh 'echo " ---- step: Push docker image ---- ";'
               sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh; sudo bash ./push-changes.sh'
             }
-            // sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/autodeploy.sh -o autodeploy.sh; bash ./autodeploy.sh.sh'
-
+            sh 'curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/autodeploy.sh -o autodeploy.sh; bash ./autodeploy.sh.sh'
+            sh 'sleep 600'
           }
         }
       }
