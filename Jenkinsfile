@@ -102,6 +102,7 @@ pipeline {
         stage('Build graphql-app') {
           environment {
             APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
+            DB_MIGRATE = 'false'
           }
           steps {
             sh '''
