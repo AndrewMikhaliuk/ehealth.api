@@ -1,7 +1,7 @@
 pipeline {
   agent {
     node { 
-      label 'ehealth-build' 
+      label 'ehealth-build-big' 
       }
   }
   environment {
