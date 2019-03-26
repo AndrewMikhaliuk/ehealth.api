@@ -17,11 +17,7 @@ pipeline {
     stage('Init') {
       steps {
         sh 'cat /etc/hostname'
-        sh '''
-          sudo docker stop $(sudo docker ps -a -q);
-          sudo docker rm $(sudo docker ps -a -q);
-          sudo systemctl restart docker
-        '''
+        sh 'docker system prune -f'
         sh '''
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
