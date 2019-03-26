@@ -17,7 +17,7 @@ pipeline {
     stage('Init') {
       steps {
         sh 'cat /etc/hostname'
-        sh 'sudo docker system prune -f'
+        sh 'sudo docker rm -f $(sudo docker ps -a -q) || true'
         sh '''
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
