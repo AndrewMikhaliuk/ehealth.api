@@ -58,7 +58,7 @@ pipeline {
           }
           steps {
             withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-            sh '(curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/docker.sh -o docker.sh; ./docker.sh) || exit 1'
+            sh '(curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/docker.sh -o docker.sh;chmod +x docker.sh; ./docker.sh) || exit 1'
             }
           }
         }
