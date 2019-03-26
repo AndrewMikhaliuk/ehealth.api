@@ -16,6 +16,7 @@ pipeline {
   stages {
     stage('Init') {
       steps {
+        sh 'echo $HOSTNAME'
         sh '''
           sudo apt install -y postgresql-client make build-essential jq;
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
