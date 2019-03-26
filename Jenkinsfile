@@ -33,9 +33,16 @@ pipeline {
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
           psql -U postgres -h localhost -c "create database event_manager_dev";
-          sudo docker exec -i kafkazookeeper /opt/kafka_2.12-2.1.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic merge_legal_entities;
+        '''
+        sh '''
+          until sudo docker exec -i kafkazookeeper /opt/kafka_2.12-2.1.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic merge_legal_entities;
+            do
+              sleep 2
+            done
           sudo docker exec -i kafkazookeeper /opt/kafka_2.12-2.1.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic deactivate_legal_entity_event;
           sudo docker exec -i kafkazookeeper /opt/kafka_2.12-2.1.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic edr_verification_events;
+        '''
+        sh '''
           mix local.hex --force;
           mix local.rebar --force;
           mix deps.get;
