@@ -17,7 +17,7 @@ pipeline {
     stage('Init') {
       steps {
         sh 'cat /etc/hostname'
-        sh 'docker system prune -f'
+        sh 'sudo docker system prune -f'
         sh '''
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
@@ -84,32 +84,6 @@ pipeline {
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
               chmod +x ./build-container.sh;
               ./build-container.sh;  
-            '''
-            sh '''
-              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
-              chmod +x ./start-container.sh; 
-              ./start-container.sh;
-            '''
-            withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-              sh 'echo " ---- step: Push docker image ---- ";'
-              sh '''
-                  curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
-                  chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
-                '''
-            }
-          }
-        }
-        stage('Build graphql-app') {
-          environment {
-            APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
-            DB_MIGRATE = 'false'
-          }
-          steps {
-            sh '''
-              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
-              chmod +x ./build-container.sh;
-              ./build-container.sh;
             '''
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
@@ -226,6 +200,32 @@ pipeline {
                 '''
             }
           }
+        }
+      }
+    }
+    stage('Build graphql-app') {
+      environment {
+        APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
+        // DB_MIGRATE = 'false'
+      }
+      steps {
+        sh '''
+          curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/build-container.sh -o build-container.sh;
+          chmod +x ./build-container.sh;
+          ./build-container.sh;
+        '''
+        sh '''
+          curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/start-container.sh -o start-container.sh;
+          chmod +x ./start-container.sh; 
+          ./start-container.sh;
+        '''
+        withCredentials(bindings: [usernamePassword(credentialsId: '8232c368-d5f5-4062-b1e0-20ec13b0d47b', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+          sh 'echo " ---- step: Push docker image ---- ";'
+          sh '''
+              curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
+              chmod +x ./push-changes.sh;
+              sudo sh ./push-changes.sh
+            '''
         }
       }
     }
