@@ -23,7 +23,9 @@ pipeline {
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
           sudo docker run -d --name redis -p 6379:6379 redis:4-alpine3.9;
           sudo docker run -d --name kafkazookeeper -p 2181:2181 -p 9092:9092 edenlabllc/kafka-zookeeper:2.1.0;
-          sleep 10;
+          sudo docker ps;
+          sleep 25;
+          sudo docker ps;
           psql -U postgres -h localhost -c "create database ehealth";
           psql -U postgres -h localhost -c "create database prm_dev";
           psql -U postgres -h localhost -c "create database fraud_dev";
@@ -70,7 +72,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -95,7 +97,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -121,7 +123,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -146,7 +148,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -171,7 +173,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -196,7 +198,7 @@ pipeline {
               sh '''
                   curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
                   chmod +x ./push-changes.sh;
-                  sudo sh ./push-changes.sh
+                  sudo ./push-changes.sh
                 '''
             }
           }
@@ -224,7 +226,7 @@ pipeline {
           sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/push-changes.sh -o push-changes.sh;
               chmod +x ./push-changes.sh;
-              sudo sh ./push-changes.sh
+              sudo ./push-changes.sh
             '''
         }
       }
@@ -239,7 +241,7 @@ pipeline {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/autodeploy.sh -o autodeploy.sh;
               chmod +x ./autodeploy.sh;
-              sudo sh ./autodeploy.sh
+              sudo ./autodeploy.sh
             '''
           }
         }
