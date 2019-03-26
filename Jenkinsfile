@@ -17,7 +17,11 @@ pipeline {
     stage('Init') {
       steps {
         sh 'cat /etc/hostname'
-        sh 'sudo systemctl restart docker'
+        sh '''
+          sudo docker stop $(sudo docker ps -a -q);
+          sudo docker rm $(sudo docker ps -a -q);
+          sudo systemctl restart docker
+        '''
         sh '''
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
@@ -235,7 +239,7 @@ pipeline {
       }
       steps {
         withCredentials([string(credentialsId: '86a8df0b-edef-418f-844a-cd1fa2cf813d', variable: 'GITHUB_TOKEN')]) {
-          withCredentials([file(credentialsId: '05dde019-3c59-4eb0-b8af-d109bf55e86f', variable: 'GCLOUD_KEY')]) {
+          withCredentials([file(credentialsId: '091bd05c-0219-4164-8a17-777f4caf7481', variable: 'GCLOUD_KEY')]) {
             sh '''
               curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/autodeploy.sh -o autodeploy.sh;
               chmod +x ./autodeploy.sh;
