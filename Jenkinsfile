@@ -18,7 +18,7 @@ pipeline {
       steps {
         sh '''
           sleep 10000;
-          sudo apt update && sudo apt install -y postgresql-client make build-essential jq;
+          sudo apt install -y postgresql-client make build-essential jq;
           sudo docker run -d --name postgres -p 5432:5432 edenlabllc/alpine-postgre:pglogical-gis-1.1;
           sudo docker run -d --name mongo -p 27017:27017 edenlabllc/alpine-mongo:4.0.1-0;
           sudo docker run -d --name redis -p 6379:6379 redis:4-alpine3.9;
