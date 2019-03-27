@@ -52,18 +52,18 @@ pipeline {
         '''
       }
     }
-    stage('Test and build') {
+    stage('Test') {
+      steps {
+        sh '''
+          (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/tests.sh -o tests.sh; chmod +x ./tests.sh; ./tests.sh) || exit 1;
+          cd apps/graphql && mix white_bread.run
+          if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;
+          '''
+      }
+    }
+    stage('Build') {
       failFast true
       parallel {
-        stage('Test') {
-          steps {
-            sh '''
-              (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/tests.sh -o tests.sh; chmod +x ./tests.sh; ./tests.sh) || exit 1;
-              cd apps/graphql && mix white_bread.run
-              if [ "$?" -eq 0 ]; then echo "mix white_bread.run successfully completed" else echo "mix white_bread.run finished with errors, exited with 1" is_failed=1; fi;
-              '''
-          }
-        }
         stage('Build ehealth-app') {
           environment {
             APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"}]'
