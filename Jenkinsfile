@@ -15,6 +15,9 @@ pipeline {
   }
   stages {
     stage('Init') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       steps {
         sh 'cat /etc/hostname'
         sh 'sudo docker rm -f $(sudo docker ps -a -q) || true'
@@ -53,6 +56,9 @@ pipeline {
       }
     }
     stage('Test') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       steps {
         sh '''
           (curl -s https://raw.githubusercontent.com/edenlabllc/ci-utils/umbrella_jenkins_gce/tests.sh -o tests.sh; chmod +x ./tests.sh; ./tests.sh) || exit 1;
@@ -65,6 +71,9 @@ pipeline {
       failFast true
       parallel {
         stage('Build ehealth-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"}]'
           }
@@ -77,6 +86,9 @@ pipeline {
           }
         }
         stage('Build casher-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"}]'
           }
@@ -89,6 +101,9 @@ pipeline {
           }
         }
         stage('Build graphql-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
             // DB_MIGRATE = 'false'
@@ -102,6 +117,9 @@ pipeline {
           }
         }
         stage('Build merge-legal-entities-consumer-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"}]'
           }
@@ -114,6 +132,9 @@ pipeline {
           }
         }
         stage('Build deactivate-legal-entity-consumer-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"}]'
           }
@@ -126,6 +147,9 @@ pipeline {
           }
         }
         stage('Build edr-validations-consumer-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"}]'
           }
@@ -138,6 +162,9 @@ pipeline {
           }
         }
         stage('Build ehealth-scheduler-app') {
+          options {
+            timeout(activity: true, time: 3)
+          }
           environment {
             APPS = '[{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
           }
@@ -152,6 +179,9 @@ pipeline {
       }
     }
     stage('Run eHealth-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"}]'
       }
@@ -172,6 +202,9 @@ pipeline {
       }
     }
     stage('Run casher-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"}]'
       }
@@ -192,6 +225,9 @@ pipeline {
       }
     }
     stage('Run graphQL-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"}]'
       }
@@ -212,6 +248,9 @@ pipeline {
       }
     }
     stage('Run merge-legal-entities-consumer-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"}]'
       }
@@ -232,6 +271,9 @@ pipeline {
       }
     }
     stage('Run deactivate-legal-entity-consumer-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"}]'
       }
@@ -252,6 +294,9 @@ pipeline {
       }
     }
     stage('Run edr-validations-consumer-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"}]'
       }
@@ -272,6 +317,9 @@ pipeline {
       }
     }
     stage('Run ehealth-scheduler-app and push') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
       }
@@ -292,6 +340,9 @@ pipeline {
       }
     }
     stage('Deploy') {
+      options {
+        timeout(activity: true, time: 3)
+      }
       environment {
         APPS = '[{"app":"ehealth","chart":"il","namespace":"il","deployment":"api","label":"api"},{"app":"casher","chart":"il","namespace":"il","deployment":"casher","label":"casher"},{"app":"graphql","chart":"il","namespace":"il","deployment":"graphql","label":"graphql"},{"app":"merge_legal_entities_consumer","chart":"il","namespace":"il","deployment":"merge-legal-entities-consumer","label":"merge-legal-entities-consumer"},{"app":"deactivate_legal_entity_consumer","chart":"il","namespace":"il","deployment":"deactivate-legal-entity-consumer","label":"deactivate-legal-entity-consumer"},{"app":"edr_validations_consumer","chart":"il","namespace":"il","deployment":"edr-validations-consumer","label":"edr-validations-consumer"},{"app":"ehealth_scheduler","chart":"il","namespace":"il","deployment":"ehealth-scheduler","label":"ehealth-scheduler"}]'
       }
