@@ -362,7 +362,7 @@ pipeline {
   post {
     success {
       script {
-        if (env.CHANGE_ID == '') {
+        if (env.CHANGE_ID) {
           slackSend (color: 'good', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
           slackSend (color: 'good', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/pull/${env.CHANGE_ID}|${env.GIT_COMMIT.take(7)}>) in PR #${env.CHANGE_ID} by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
@@ -371,7 +371,7 @@ pipeline {
     }
     failure {
       script {
-        if (env.CHANGE_ID == '') {
+        if (env.CHANGE_ID) {
           slackSend (color: 'danger', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
           slackSend (color: 'danger', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/pull/${env.CHANGE_ID}|${env.GIT_COMMIT.take(7)}>) in PR #${env.CHANGE_ID} by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
@@ -380,7 +380,7 @@ pipeline {
     }
     aborted {
       script {
-        if (env.CHANGE_ID == '') {
+        if (env.CHANGE_ID) {
           slackSend (color: 'warning', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) by ${env.GIT_COMMITTER_NAME} *canceled* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
           slackSend (color: 'warning', message: "Build of <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> ${env.JOB_NAME} (<https://github.com/edenlabllc/ehealth.api/pull/${env.CHANGE_ID}|${env.GIT_COMMIT.take(7)}>) in PR #${env.CHANGE_ID} by ${env.GIT_COMMITTER_NAME} *canceled* in ${currentBuild.durationString.replace(' and counting', '')}")
