@@ -361,13 +361,13 @@ pipeline {
   }
   post {
     success {
-      slackSend (color: 'good', message: "*SUCCESSFUL*: Job - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.RUN_DISPLAY_URL}|Open>) by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
+      slackSend (color: 'good', message: "*SUCCESSFUL*: Job - ${env.JOB_NAME} ${env.GIT_URL} (<${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}>) by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
     }
     failure {
-      slackSend (color: 'danger', message: "*FAILED*: Job - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.RUN_DISPLAY_URL}|Open>) by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
+      slackSend (color: 'danger', message: "*FAILED*: Job - ${env.JOB_NAME} ${env.GIT_URL} (<${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}>) by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
     }
     aborted {
-      slackSend (color: 'warning', message: "*ABORTED*: Job - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.RUN_DISPLAY_URL}|Open>) by ${env.GIT_COMMITTER_NAME} *canceled* in ${currentBuild.durationString.replace(' and counting', '')}")
+      slackSend (color: 'warning', message: "*ABORTED*: Job - ${env.JOB_NAME} ${env.GIT_URL} (<${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}>) by ${env.GIT_COMMITTER_NAME} *canceled* in ${currentBuild.durationString.replace(' and counting', '')}")
     }
   }
 }
