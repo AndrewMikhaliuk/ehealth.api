@@ -12,7 +12,6 @@ pipeline {
     POSTGRES_USER = 'postgres'
     POSTGRES_PASSWORD = 'postgres'
     POSTGRES_DB = 'postgres'
-    GIT_COMMIT_SHORT = "${GIT_COMMIT:0:7}"
   }
   stages {
     stage('Init') {
