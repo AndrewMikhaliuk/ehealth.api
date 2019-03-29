@@ -361,7 +361,7 @@ pipeline {
   }
   post {
     success {
-      slackSend (color: 'good', message: "*SUCCESSFUL*: Job - ${env.JOB_NAME} ${env.GIT_COMMIT.take(7)} <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
+      slackSend (color: 'good', message: "*SUCCESSFUL*: Job - ${env.JOB_NAME} <https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}> <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
     }
     failure {
       slackSend (color: 'danger', message: "*FAILED*: Job - ${env.JOB_NAME} ${env.GIT_COMMIT.take(7)} <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
