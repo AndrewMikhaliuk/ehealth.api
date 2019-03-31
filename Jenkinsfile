@@ -15,7 +15,6 @@ pipeline {
     POSTGRES_USER = 'postgres'
     POSTGRES_PASSWORD = 'postgres'
     POSTGRES_DB = 'postgres'
-    BUILD_USER = getBuildUser()
   }
   stages {
     stage('Init') {
