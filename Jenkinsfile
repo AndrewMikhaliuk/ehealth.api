@@ -1,5 +1,5 @@
-def getBuildUser() {
-    return currentBuild.rawBuild.getCause(Cause.UserIdCause).getUserId()
+def author() {
+  return sh(returnStdout: true, script: 'git log -n 1 --format="%an"').trim()
 }
 pipeline {
   agent {
@@ -367,7 +367,7 @@ pipeline {
     success {
       script {
         if (env.CHANGE_ID == null) {
-          slackSend (color: 'good', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} by ${BUILD_USER} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
+          slackSend (color: 'good', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} by author() *success* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
           slackSend (color: 'good', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/pull/${env.CHANGE_ID}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} in PR #${env.CHANGE_ID} by ${env.GIT_COMMITTER_NAME} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
         }
