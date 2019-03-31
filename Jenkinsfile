@@ -15,7 +15,7 @@ pipeline {
     POSTGRES_USER = 'postgres'
     POSTGRES_PASSWORD = 'postgres'
     POSTGRES_DB = 'postgres'
-    BUILD_USER = ''
+    BUILD_USER = getBuildUser()
   }
   stages {
     stage('Init') {
@@ -366,7 +366,6 @@ pipeline {
   post {
     success {
       script {
-        BUILD_USER = getBuildUser()
         if (env.CHANGE_ID == null) {
           slackSend (color: 'good', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} by ${BUILD_USER} *success* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
@@ -376,7 +375,6 @@ pipeline {
     }
     failure {
       script {
-        BUILD_USER = getBuildUser()
         if (env.CHANGE_ID == null) {
           slackSend (color: 'danger', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} by ${env.GIT_COMMITTER_NAME} *failed* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
@@ -386,7 +384,6 @@ pipeline {
     }
     aborted {
       script {
-        BUILD_USER = getBuildUser()
         if (env.CHANGE_ID == null) {
           slackSend (color: 'warning', message: "Build <${env.RUN_DISPLAY_URL}|#${env.BUILD_NUMBER}> (<https://github.com/edenlabllc/ehealth.api/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT.take(7)}>) of ${env.JOB_NAME} by ${env.GIT_COMMITTER_NAME} *canceled* in ${currentBuild.durationString.replace(' and counting', '')}")
         } else if (env.BRANCH_NAME.startsWith('PR')) {
