@@ -1833,7 +1833,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
-      {medication_request, medication_dispense} =
+      {_, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
@@ -1858,13 +1858,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
-      end)
-
-      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
-        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
-      end)
+      expect(
+        OPSMock,
+        :process_medication_dispense,
+        fn _id, %{"medication_dispense" => params, "medication_request" => _}, _headers ->
+          {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+        end
+      )
 
       expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
         {:ok,
@@ -2674,7 +2674,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
-      {medication_request, medication_dispense} =
+      {_, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
@@ -2699,13 +2699,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
-      end)
-
-      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
-        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
-      end)
+      expect(
+        OPSMock,
+        :process_medication_dispense,
+        fn _id, %{"medication_dispense" => params, "medication_request" => _}, _headers ->
+          {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+        end
+      )
 
       expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
         {:ok,
@@ -2803,7 +2803,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
-      {medication_request, medication_dispense} =
+      {_, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
@@ -2828,13 +2828,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
-      end)
-
-      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
-        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
-      end)
+      expect(
+        OPSMock,
+        :process_medication_dispense,
+        fn _id, %{"medication_dispense" => params, "medication_request" => _}, _headers ->
+          {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+        end
+      )
 
       expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
         {:ok,
@@ -2980,7 +2980,7 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
         reimbursement: build(:reimbursement, reimbursement_amount: 150)
       )
 
-      {medication_request, medication_dispense} =
+      {_, medication_dispense} =
         build_resp(%{
           legal_entity_id: legal_entity.id,
           division_id: division_id,
@@ -3005,13 +3005,13 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
           }
         })
 
-      expect(OPSMock, :update_medication_request, fn _id, _params, _headers ->
-        {:ok, %{"data" => [medication_request]}}
-      end)
-
-      expect(OPSMock, :update_medication_dispense, fn _id, %{"medication_dispense" => params}, _headers ->
-        {:ok, %{"data" => Map.merge(medication_dispense, params)}}
-      end)
+      expect(
+        OPSMock,
+        :process_medication_dispense,
+        fn _id, %{"medication_dispense" => params, "medication_request" => _}, _headers ->
+          {:ok, %{"data" => Map.merge(medication_dispense, params)}}
+        end
+      )
 
       expect(OPSMock, :get_medication_dispenses, 2, fn _params, _headers ->
         {:ok,
@@ -3547,12 +3547,6 @@ defmodule EHealth.Web.MedicationDispenseControllerTest do
 
       assert 1 == length(resp)
       assert medication_request["id"] == resp |> hd() |> get_in(~w(medication_request id))
-    end
-
-    test "party_user not found", %{conn: conn} do
-      conn = put_client_id_header(conn, UUID.generate())
-      conn = get(conn, medication_dispense_path(conn, :by_medication_request, UUID.generate()))
-      assert json_response(conn, 500)
     end
   end
 
