@@ -2,11 +2,7 @@ defmodule Core.LegalEntities.EdrData do
   @moduledoc false
 
   use Ecto.Schema
-
-  alias Core.Divisions.Division
-  alias Core.Employees.Employee
-  alias Core.LegalEntities.MedicalServiceProvider
-  alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.LegalEntity
   alias Ecto.UUID
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -24,7 +20,7 @@ defmodule Core.LegalEntities.EdrData do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    belongs_to(:legal_entity, LegalEntity, type: UUID)
+    has_one(:legal_entity, LegalEntity, foreign_key: :edr_data_id)
 
     timestamps(type: :utc_datetime)
   end

@@ -63,6 +63,8 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:capitation_contract_id, :id)
     field(:created_by_mis_client_id, Ecto.UUID)
     field(:edr_verified, :boolean)
+    field(:registration_address, :map)
+    field(:residence_address, :map)
 
     has_one(:medical_service_provider, MedicalServiceProvider, on_replace: :delete, foreign_key: :legal_entity_id)
     has_one(:merged_to_legal_entity, RelatedLegalEntity, foreign_key: :merged_from_id)
@@ -70,7 +72,7 @@ defmodule Core.LegalEntities.LegalEntity do
     has_many(:employees, Employee, foreign_key: :legal_entity_id)
     has_many(:divisions, Division, foreign_key: :legal_entity_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
-    has_many(:edr_data, EdrData, foreign_key: :legal_entity_id)
+    belongs_to(:edr_data, EdrData)
 
     timestamps(type: :utc_datetime)
   end
