@@ -16,6 +16,7 @@ defmodule Core.V2.LegalEntities do
 
   require Logger
 
+  @status_closed LegalEntity.status(:closed)
   @msp LegalEntity.type(:msp)
   @pharmacy LegalEntity.type(:pharmacy)
   @msp_pharmacy LegalEntity.type(:msp_pharmacy)
@@ -70,11 +71,17 @@ defmodule Core.V2.LegalEntities do
   defp update_type_allow?([%LegalEntity{type: @msp} = legal_entity], @msp_pharmacy), do: {:ok, legal_entity}
   defp update_type_allow?([%LegalEntity{type: @pharmacy} = legal_entity], @msp_pharmacy), do: {:ok, legal_entity}
 
-  defp update_type_allow?([%LegalEntity{type: current_type}], type),
-    do: {:error, {:conflict, "LegalEntity with #{current_type} could not be updated to #{type} for now"}}
+  defp update_type_allow?([%LegalEntity{type: current_type}], type) do
+    {:error, {:conflict, "LegalEntity with #{current_type} could not be updated to #{type} for now"}}
+  end
+
+  def check_status(%LegalEntity{status: @status_closed}) do
+    {:error, {:conflict, "LegalEntity can't be updated"}}
+  end
+
+  def check_status(_), do: :ok
 
   defdelegate list(params), to: LegalEntities
-  defdelegate check_status(legal_entity), to: LegalEntities
   defdelegate store_signed_content(legal_entity_id, params, headers), to: LegalEntities
   defdelegate put_legal_entity_to_prm(legal_entity, request_params, headers), to: LegalEntities
   defdelegate get_client_type_id(type, headers), to: LegalEntities

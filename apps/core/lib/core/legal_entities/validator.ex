@@ -42,9 +42,9 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_tax_id(content),
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
-         {:ok, legal_entity_code} <- validate_state_registry_number(content, signer),
-         :ok <- validate_edr(content, legal_entity_code) do
-      {:ok, content}
+         {:ok, legal_entity_code} <- validate_state_registry_number(content, signer) do
+      #  :ok <- validate_edr(content, legal_entity_code) do
+      {:ok, content, legal_entity_code}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
         Error.dump(%ValidationError{description: reason, path: "$.signed_legal_entity_request"})

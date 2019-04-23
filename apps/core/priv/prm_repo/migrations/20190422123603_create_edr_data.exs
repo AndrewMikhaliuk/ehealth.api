@@ -10,7 +10,7 @@ defmodule Core.PRMRepo.Migrations.CreateEdrData do
       add(:name, :string)
       add(:short_name, :string)
       add(:public_name, :string)
-      add(:state, :string)
+      add(:state, :integer)
       add(:legal_form, :string)
       add(:edrpou, :string)
       add(:kveds, :map)

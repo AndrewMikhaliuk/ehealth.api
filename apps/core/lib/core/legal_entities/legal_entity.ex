@@ -9,10 +9,13 @@ defmodule Core.LegalEntities.LegalEntity do
   alias Core.LegalEntities.License
   alias Core.LegalEntities.MedicalServiceProvider
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.SignedContent
+  alias Ecto.UUID
 
   @derive {Jason.Encoder, except: [:__meta__]}
 
   @status_active "ACTIVE"
+  @status_suspended "SUSPENDED"
   @status_closed "CLOSED"
 
   @type_mis "MIS"
@@ -34,6 +37,7 @@ defmodule Core.LegalEntities.LegalEntity do
   def mis_verified(:not_verified), do: @mis_verified_not_verified
 
   def status(:active), do: @status_active
+  def status(:suspended), do: @status_suspended
   def status(:closed), do: @status_closed
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -73,8 +77,9 @@ defmodule Core.LegalEntities.LegalEntity do
     has_many(:employees, Employee, foreign_key: :legal_entity_id)
     has_many(:divisions, Division, foreign_key: :legal_entity_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
-    belongs_to(:edr_data, EdrData)
-    belongs_to(:license, License)
+    has_many(:signed_content_history, SignedContent, foreign_key: :legal_entity_id)
+    belongs_to(:edr_data, EdrData, type: UUID)
+    belongs_to(:license, License, type: UUID)
 
     timestamps(type: :utc_datetime)
   end

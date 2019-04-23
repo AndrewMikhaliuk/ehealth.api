@@ -4,6 +4,7 @@ defmodule EHealth.Web.LegalEntityController do
   use EHealth.Web, :controller
 
   alias Core.LegalEntities, as: API
+  alias Core.LegalEntities.RelatedLegalEntities
   alias Scrivener.Page
 
   action_fallback(EHealth.Web.FallbackController)
@@ -33,7 +34,7 @@ defmodule EHealth.Web.LegalEntityController do
   end
 
   def list_legators(%Plug.Conn{} = conn, params) do
-    with %Page{} = paging <- API.list_legators(params, get_client_id(conn.req_headers)) do
+    with %Page{} = paging <- RelatedLegalEntities.list(params, get_client_id(conn.req_headers)) do
       render(conn, "index.json", legal_entities: paging.entries, paging: paging)
     end
   end

@@ -11,6 +11,7 @@ defmodule Jobs.LegalEntityMergeJob do
   alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.RelatedLegalEntity
+  alias Core.LegalEntities.RelatedLegalEntities
   alias Core.LegalEntities.Validator, as: LegalEntitiesValidator
   alias Core.Utils.TypesConverter
   alias Core.Validators.JsonSchema
@@ -133,7 +134,7 @@ defmodule Jobs.LegalEntityMergeJob do
   defp validate_related_legal_entity(id, message) do
     where = [merged_from_id: id, is_active: true]
 
-    case LegalEntities.get_related_by(where) do
+    case RelatedLegalEntities.get_related_by(where) do
       %RelatedLegalEntity{} -> {:error, {:conflict, message}}
       _ -> :ok
     end
@@ -267,7 +268,7 @@ defmodule Jobs.LegalEntityMergeJob do
   defp create_related_legal_entity(id, task) do
     inserted_by = get_consumer_id(task.headers)
 
-    LegalEntities.create(
+    RelatedLegalEntities.create(
       %RelatedLegalEntity{},
       %{
         id: id,

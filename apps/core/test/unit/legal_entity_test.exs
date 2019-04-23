@@ -35,15 +35,15 @@ defmodule Core.Unit.LegalEntityTest do
       edrpou_signed_content(content, "38782323")
       expect_uaddresses_validate()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => content["name"]},
-           "olf_code" => content["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => content["name"]},
+      #      "olf_code" => content["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -234,15 +234,15 @@ defmodule Core.Unit.LegalEntityTest do
       expect_uaddresses_validate()
       upsert_client_connection()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => data["name"]},
-           "olf_code" => data["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => data["name"]},
+      #      "olf_code" => data["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -287,15 +287,15 @@ defmodule Core.Unit.LegalEntityTest do
 
       upsert_client_connection()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => data["name"]},
-           "olf_code" => data["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => data["name"]},
+      #      "olf_code" => data["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -347,12 +347,32 @@ defmodule Core.Unit.LegalEntityTest do
       expect_uaddresses_validate()
       upsert_client_connection()
 
-      expect_edr_by_code(
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => update_data["name"]},
+           "names" => %{"name" => update_data["name"], "display" => update_data["name"]},
            "olf_code" => update_data["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -395,15 +415,15 @@ defmodule Core.Unit.LegalEntityTest do
       expect_uaddresses_validate()
       upsert_client_connection()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => data["name"]},
-           "olf_code" => data["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => data["name"]},
+      #      "olf_code" => data["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -419,15 +439,15 @@ defmodule Core.Unit.LegalEntityTest do
 
     data = get_legal_entity_data()
 
-    expect_edr_by_code(
-      {:ok,
-       %{
-         "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-         "names" => %{"display" => data["name"]},
-         "olf_code" => data["legal_form"],
-         "state" => 1
-       }}
-    )
+    # expect_edr_by_code(
+    #   {:ok,
+    #    %{
+    #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+    #      "names" => %{"display" => data["name"]},
+    #      "olf_code" => data["legal_form"],
+    #      "state" => 1
+    #    }}
+    # )
 
     expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -451,15 +471,15 @@ defmodule Core.Unit.LegalEntityTest do
       expect_uaddresses_validate()
       upsert_client_connection()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => update_data["name"]},
-           "olf_code" => update_data["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => update_data["name"]},
+      #      "olf_code" => update_data["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
