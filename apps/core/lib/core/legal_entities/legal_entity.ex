@@ -6,6 +6,7 @@ defmodule Core.LegalEntities.LegalEntity do
   alias Core.Divisions.Division
   alias Core.Employees.Employee
   alias Core.LegalEntities.EdrData
+  alias Core.LegalEntities.License
   alias Core.LegalEntities.MedicalServiceProvider
   alias Core.LegalEntities.RelatedLegalEntity
 
@@ -73,6 +74,7 @@ defmodule Core.LegalEntities.LegalEntity do
     has_many(:divisions, Division, foreign_key: :legal_entity_id)
     has_many(:merged_from_legal_entities, RelatedLegalEntity, foreign_key: :merged_to_id)
     belongs_to(:edr_data, EdrData)
+    belongs_to(:license, License)
 
     timestamps(type: :utc_datetime)
   end

@@ -20,7 +20,7 @@ defmodule Core.LegalEntities.License do
     field(:inserted_by, UUID)
     field(:updated_by, UUID)
 
-    has_many(:legal_entities, LeglEntity)
+    has_many(:legal_entities, LegalEntity)
 
     timestamps(type: :utc_datetime)
   end
