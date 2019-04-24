@@ -12,6 +12,7 @@ pipeline {
     POSTGRES_USER = 'postgres'
     POSTGRES_PASSWORD = 'postgres'
     POSTGRES_DB = 'postgres'
+    REPOSITORY_NAME = 'ehealth.api'
   }
   stages {
     stage('Check commit and PR requirements') {
