@@ -43,7 +43,6 @@ defmodule Core.LegalEntities.Validator do
          :ok <- validate_owner_birth_date(content),
          :ok <- validate_owner_position(content),
          {:ok, legal_entity_code} <- validate_state_registry_number(content, signer) do
-      #  :ok <- validate_edr(content, legal_entity_code) do
       {:ok, content, legal_entity_code}
     else
       {:signed_content, {:error, {:bad_request, reason}}} ->
@@ -176,105 +175,6 @@ defmodule Core.LegalEntities.Validator do
 
   defp is_valid_content(changeset, _content), do: {:error, changeset}
 
-  def validate_edr(content, %{edrpou: value}) do
-    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
-      "edr_api"
-      |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_code, [value])
-      |> do_validate_edr(content)
-    else
-      :ok
-    end
-  end
-
-  def validate_edr(content, %{drfo: value}) do
-    if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
-      "edr_api"
-      |> @rpc_edr_worker.run(EdrApi.Rpc, :legal_entity_by_passport, [value])
-      |> do_validate_edr(content)
-    else
-      :ok
-    end
-  end
-
-  defp do_validate_edr({:ok, edr_data}, content) do
-    with :ok <- validate_legal_entity_status(edr_data),
-         :ok <- validate_legal_entity_attrs(edr_data, content) do
-      :ok
-    end
-  end
-
-  defp do_validate_edr({:error, _}, _), do: {:error, {:conflict, "Legal Entity not found in EDR"}}
-
-  defp validate_legal_entity_status(%{"state" => 1}), do: :ok
-  defp validate_legal_entity_status(_), do: {:error, {:conflict, "Invalid Legal Entity status in EDR"}}
-
-  defp validate_legal_entity_attrs(edr_data, content) do
-    same_legal_form? =
-      content["legal_form"] == edr_data["olf_code"] ||
-        (content["legal_form"] == "910" && is_nil(edr_data["olf_code"]))
-
-    with {_, true} <- {:name, content["name"] == edr_data["names"]["display"]},
-         {_, true} <- {:legal_form, same_legal_form?},
-         :ok <- validate_legal_entity_address(edr_data, content) do
-      :ok
-    else
-      {:name, _} ->
-        Error.dump(%ValidationError{
-          description: "Legal entity name doesn't match with EDR data",
-          path: "$.name"
-        })
-
-      {:legal_form, _} ->
-        Error.dump(%ValidationError{
-          description: "Legal entity legal form doesn't match with EDR data",
-          path: "$.legal_form"
-        })
-
-      error ->
-        error
-    end
-  end
-
-  defp validate_legal_entity_address(edr_data, content) do
-    {address, i} =
-      content
-      |> Map.get("addresses")
-      |> Enum.with_index()
-      |> Enum.find(fn {address, _} -> address["type"] == "REGISTRATION" end)
-
-    error =
-      Error.dump(%ValidationError{
-        description: "Legal entity registration address doesn't match with EDR data",
-        path: "$.addresses.[#{i}]"
-      })
-
-    case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :settlement_by_id, [address["settlement_id"]]) do
-      {:ok, settlement_data} ->
-        validate_legal_entity_address_koatu(error, settlement_data, edr_data)
-
-      _ ->
-        error
-    end
-  end
-
-  defp validate_legal_entity_address_koatu(_, %{koatuu: nil}, %{
-         "address" => %{"parts" => %{"atu_code" => ""}}
-       }) do
-    :ok
-  end
-
-  defp validate_legal_entity_address_koatu(error, %{koatuu: nil}, _), do: error
-
-  defp validate_legal_entity_address_koatu(error, %{koatuu: settlement_koatuu}, %{
-         "address" => %{"parts" => %{"atu_code" => edr_koatuu}}
-       }) do
-    if String.starts_with?(edr_koatuu, String.replace_trailing(settlement_koatuu, "0", "")) do
-      :ok
-    else
-      error
-    end
-  end
-
   def validate_owner_birth_date(content) do
     content
     |> get_in(["owner", "birth_date"])
@@ -322,5 +222,69 @@ defmodule Core.LegalEntities.Validator do
     content
     |> Map.put("email", Sanitizer.sanitize(email))
     |> put_in(path, Sanitizer.sanitize(owner_email))
+  end
+
+  def validate_edr_data_fields(edr_data, legal_form, name, addresses) do
+    same_legal_form? =
+      legal_form == edr_data["olf_code"] ||
+        (legal_form == "910" && is_nil(edr_data["olf_code"]))
+
+    with {_, true} <- {:name, name == edr_data["names"]["display"]},
+         {_, true} <- {:legal_form, same_legal_form?},
+         :ok <- validate_edr_data_address(edr_data, addresses) do
+      :ok
+    else
+      {:name, _} ->
+        Error.dump(%ValidationError{
+          description: "Legal entity name doesn't match with EDR data",
+          path: "$.name"
+        })
+
+      {:legal_form, _} ->
+        Error.dump(%ValidationError{
+          description: "Legal entity legal form doesn't match with EDR data",
+          path: "$.legal_form"
+        })
+
+      error ->
+        error
+    end
+  end
+
+  defp validate_edr_data_address(edr_data, addresses) do
+    {address, i} =
+      addresses
+      |> Enum.with_index()
+      |> Enum.find(fn {address, _} -> address["type"] == "REGISTRATION" end)
+
+    error =
+      Error.dump(%ValidationError{
+        description: "Legal entity registration address doesn't match with EDR data",
+        path: "$.addresses.[#{i}]"
+      })
+
+    case @rpc_worker.run("uaddresses_api", Uaddresses.Rpc, :settlement_by_id, [address["settlement_id"]]) do
+      {:ok, settlement_data} ->
+        validate_edr_data_koatu(error, settlement_data, edr_data)
+
+      _ ->
+        error
+    end
+  end
+
+  defp validate_edr_data_koatu(_, %{koatuu: nil}, %{"address" => %{"parts" => %{"atu_code" => ""}}}) do
+    :ok
+  end
+
+  defp validate_edr_data_koatu(error, %{koatuu: nil}, _), do: error
+
+  defp validate_edr_data_koatu(error, %{koatuu: settlement_koatuu}, %{
+         "address" => %{"parts" => %{"atu_code" => edr_koatuu}}
+       }) do
+    if String.starts_with?(edr_koatuu, String.replace_trailing(settlement_koatuu, "0", "")) do
+      :ok
+    else
+      error
+    end
   end
 end

@@ -45,12 +45,6 @@ defmodule EHealth.Web.LegalEntityController do
     end
   end
 
-  def mis_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
-    with {:ok, legal_entity} <- API.mis_verify(id, get_consumer_id(req_headers)) do
-      render(conn, "show.json", legal_entity: legal_entity)
-    end
-  end
-
   def nhs_verify(%Plug.Conn{req_headers: req_headers} = conn, %{"id" => id}) do
     with {:ok, legal_entity} <- API.nhs_verify(%{id: id, nhs_verified: true}, get_consumer_id(req_headers)) do
       render(conn, "show.json", legal_entity: legal_entity)

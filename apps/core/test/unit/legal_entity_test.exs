@@ -8,13 +8,10 @@ defmodule Core.Unit.LegalEntityTest do
   import Ecto.Query, warn: false
   import Mox
 
-  alias Core.EmployeeRequests.EmployeeRequest
   alias Core.LegalEntities, as: API
   alias Core.LegalEntities.LegalEntity
-  alias Core.LegalEntities.RelatedLegalEntity
   alias Core.LegalEntities.Validator
   alias Core.PRMRepo
-  alias Core.Repo
   alias Ecto.Changeset
   alias Ecto.UUID
 
@@ -35,19 +32,7 @@ defmodule Core.Unit.LegalEntityTest do
       edrpou_signed_content(content, "38782323")
       expect_uaddresses_validate()
 
-      # expect_edr_by_code(
-      #   {:ok,
-      #    %{
-      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-      #      "names" => %{"display" => content["name"]},
-      #      "olf_code" => content["legal_form"],
-      #      "state" => 1
-      #    }}
-      # )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert {:ok, _} =
+      assert {:ok, _, %{edrpou: "38782323"}} =
                Validator.decode_and_validate(
                  %{
                    "signed_content_encoding" => "base64",
@@ -215,121 +200,35 @@ defmodule Core.Unit.LegalEntityTest do
              } = create_legal_entity(data)
     end
 
-    test "mis_verified NOT_VERIFIED" do
-      put_client()
-
-      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      template()
-
-      data =
-        Map.merge(get_legal_entity_data(), %{
-          "short_name" => "edenlab",
-          "email" => "changed@example.com",
-          "kveds" => ["86.21"]
-        })
-
-      expect_uaddresses_validate()
-      upsert_client_connection()
-
-      # expect_edr_by_code(
-      #   {:ok,
-      #    %{
-      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-      #      "names" => %{"display" => data["name"]},
-      #      "olf_code" => data["legal_form"],
-      #      "state" => 1
-      #    }}
-      # )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
-
-      # test legal entity data
-      assert "edenlab" == legal_entity.short_name
-      assert "ACTIVE" == legal_entity.status
-      assert "NOT_VERIFIED" == legal_entity.mis_verified
-      refute is_nil(legal_entity.nhs_verified)
-      refute legal_entity.nhs_verified
-      assert_security(security, legal_entity.id)
-
-      # test employee request
-      assert 1 == Repo.one(from(e in EmployeeRequest, select: count("*")))
-      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from(e in EmployeeRequest))
-      assert legal_entity.id == employee_request_data["legal_entity_id"]
-      assert "P1" == employee_request_data["position"]
-      assert "OWNER" == employee_request_data["employee_type"]
-
-      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
+    test "success new legal entity and new edr_data" do
     end
 
-    test "mis_verified VERIFIED" do
-      put_client()
+    test "success new legal entity with existing edr_data" do
+    end
 
-      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
+    test "success new legal entity with existing closed edr_data and new active edr_data from edr" do
+    end
 
-      template()
+    test "fail to create new legal entity with invalid edr response" do
+    end
 
-      data =
-        Map.merge(get_legal_entity_data(), %{
-          "short_name" => "edenlab",
-          "email" => "changed@example.com",
-          "kveds" => ["86.10"]
-        })
+    test "fail to create new legal entity with inactive legal entities with references to closed edr_data" do
+    end
 
-      expect_uaddresses_validate()
-      insert(:prm, :registry, edrpou: "37367387", type: LegalEntity.type(:msp))
-
-      upsert_client_connection()
-
-      # expect_edr_by_code(
-      #   {:ok,
-      #    %{
-      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-      #      "names" => %{"display" => data["name"]},
-      #      "olf_code" => data["legal_form"],
-      #      "state" => 1
-      #    }}
-      # )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(data)
-      # test legal entity data
-      assert "edenlab" == legal_entity.short_name
-      assert "ACTIVE" == legal_entity.status
-      assert "VERIFIED" == legal_entity.mis_verified
-      refute is_nil(legal_entity.nhs_verified)
-      refute legal_entity.nhs_verified
-      assert_security(security, legal_entity.id)
-
-      # test employee request
-      assert 1 == Repo.one(from(e in EmployeeRequest, select: count("*")))
-      assert %EmployeeRequest{data: employee_request_data, status: "NEW"} = Repo.one(from(e in EmployeeRequest))
-      assert legal_entity.id == employee_request_data["legal_entity_id"]
-      assert "P1" == employee_request_data["position"]
-      assert "OWNER" == employee_request_data["employee_type"]
-
-      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
+    test "fail to create new legal entity with closed edr_data from edr" do
     end
   end
 
   describe "update Legal Entity" do
     setup _context do
       insert_dictionaries()
-      template()
       :ok
     end
 
-    test "happy path" do
+    test "success update legal entity references active edr_data" do
+      template()
       insert(:prm, :registry)
       insert(:prm, :legal_entity, edrpou: "10002000")
-      insert(:prm, :legal_entity, edrpou: "37367387")
       put_client()
 
       update_data =
@@ -383,7 +282,6 @@ defmodule Core.Unit.LegalEntityTest do
 
       assert "37367387" == legal_entity.edrpou
       assert "ACTIVE" == legal_entity.status
-      assert "VERIFIED" == legal_entity.mis_verified
       assert "changed@example.com" == legal_entity.email
       assert "edenlab" == legal_entity.short_name
       assert "Лев Томас" == legal_entity.beneficiary
@@ -403,129 +301,132 @@ defmodule Core.Unit.LegalEntityTest do
       assert 2 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
     end
 
-    test "update inactive Legal Entity" do
-      put_client()
-      insert(:prm, :legal_entity, edrpou: "37367387", is_active: false)
-
-      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      data = Map.merge(get_legal_entity_data(), %{"edrpou" => "37367387"})
-      expect_uaddresses_validate()
-      upsert_client_connection()
-
-      # expect_edr_by_code(
-      #   {:ok,
-      #    %{
-      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-      #      "names" => %{"display" => data["name"]},
-      #      "olf_code" => data["legal_form"],
-      #      "state" => 1
-      #    }}
-      # )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert {:ok, %{legal_entity: legal_entity}} = create_legal_entity(data)
-      assert true = legal_entity.is_active
-    end
-  end
-
-  test "CLOSED Legal Entity cannot be updated" do
-    insert_dictionaries()
-    insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
-    expect_uaddresses_validate()
-
-    data = get_legal_entity_data()
-
-    # expect_edr_by_code(
-    #   {:ok,
-    #    %{
-    #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-    #      "names" => %{"display" => data["name"]},
-    #      "olf_code" => data["legal_form"],
-    #      "state" => 1
-    #    }}
-    # )
-
-    expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-    assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(data)
-  end
-
-  describe "update Legal Entity with OPS contract suspend" do
-    test "successfully update name" do
-      put_client()
-      template()
-
-      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
-        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-      end)
-
-      insert_dictionaries()
+    test "fail to update legal_entity with invalid edr response" do
       insert(:prm, :registry)
-      insert(:prm, :legal_entity, edrpou: "37367387")
+      insert(:prm, :legal_entity, edrpou: "10002000")
 
-      update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
+      update_data =
+        Map.merge(get_legal_entity_data(), %{
+          "edrpou" => "37367387",
+          "short_name" => "edenlab",
+          "email" => "changed@example.com",
+          "kveds" => ["86.10"]
+        })
+
       expect_uaddresses_validate()
-      upsert_client_connection()
+      expect_search_legal_entity({:error, :timeout})
 
-      # expect_edr_by_code(
-      #   {:ok,
-      #    %{
-      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-      #      "names" => %{"display" => update_data["name"]},
-      #      "olf_code" => update_data["legal_form"],
-      #      "state" => 1
-      #    }}
-      # )
-
-      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
-
-      assert "Нова" == legal_entity.name
-      assert "ACTIVE" == legal_entity.status
-
-      assert_security(security, legal_entity.id)
-      assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
-
-      qry = "SELECT changeset FROM audit_log WHERE resource = 'legal_entities'"
-
-      # check that audit_log created in transaction
-      assert %{num_rows: 1, rows: [[row]]} = Ecto.Adapters.SQL.query!(PRMRepo, qry, [])
-      assert "Нова" == row["name"]
-    end
-
-    test "rollback suspended contracts on legal entity update when edrpou is duplicated" do
-      insert(:prm, :legal_entity, edrpou: "10020030")
-      legal_entity = insert(:prm, :legal_entity)
-      changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
-      assert {:error, %Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
+      assert {:error, {:conflict, "Legal Entity not found in EDR"}} = create_legal_entity(update_data)
     end
   end
 
-  describe "create related legal entity" do
-    test "duplicated merged ids" do
-      to = insert(:prm, :legal_entity)
-      from = insert(:prm, :legal_entity)
+  # test "CLOSED Legal Entity cannot be updated" do
+  #   insert_dictionaries()
+  #   insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
+  #   expect_uaddresses_validate()
 
-      inserted_by = UUID.generate()
+  #   data = get_legal_entity_data()
 
-      data = %{
-        reason: "test merge",
-        merged_to_id: to.id,
-        merged_from_id: from.id,
-        inserted_by: inserted_by,
-        is_active: true
-      }
+  #   expect_search_legal_entity(
+  #     {:ok,
+  #      [
+  #        %{
+  #          "id" => 12345,
+  #          "state" => 1
+  #        }
+  #      ]}
+  #   )
 
-      assert {:ok, _} = API.create(%RelatedLegalEntity{}, data, inserted_by)
-      assert {:error, %Changeset{errors: errors}} = API.create(%RelatedLegalEntity{}, data, inserted_by)
-      assert {"related legal entity already created", []} == errors[:merged_to]
-    end
-  end
+  #   expect_get_legal_entity_detailed_info(
+  #     {:ok,
+  #      %{
+  #        "id" => 12345,
+  #        "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+  #        "names" => %{"name" => data["name"], "display" => data["name"]},
+  #        "olf_code" => data["legal_form"],
+  #        "activity_kinds" => [
+  #          %{
+  #            "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+  #            "code" => "46.51",
+  #            "is_primary" => false
+  #          }
+  #        ],
+  #        "state" => 1
+  #      }}
+  #   )
+
+  #   # expect_edr_by_code(
+  #   #   {:ok,
+  #   #    %{
+  #   #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+  #   #      "names" => %{"display" => data["name"]},
+  #   #      "olf_code" => data["legal_form"],
+  #   #      "state" => 1
+  #   #    }}
+  #   # )
+
+  #   expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+  #   assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(data)
+  # end
+
+  # describe "update Legal Entity with OPS contract suspend" do
+  #   test "successfully update name" do
+  #     put_client()
+  #     template()
+
+  #     expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+  #       {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+  #     end)
+
+  #     insert_dictionaries()
+  #     insert(:prm, :registry)
+  #     edr_data = insert(:prm, :edr_data, legal_entity: build(:legal_entity, edrpou: "37367387"))
+
+  #     update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
+  #     expect_uaddresses_validate()
+  #     upsert_client_connection()
+
+  #     expect_get_legal_entity_detailed_info(
+  #       {:ok,
+  #        %{
+  #          "id" => edr_data.edr_id,
+  #          "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+  #          "names" => %{"name" => update_data["name"], "display" => update_data["name"]},
+  #          "olf_code" => update_data["legal_form"],
+  #          "activity_kinds" => [
+  #            %{
+  #              "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+  #              "code" => "46.51",
+  #              "is_primary" => false
+  #            }
+  #          ],
+  #          "state" => 1
+  #        }}
+  #     )
+
+  #     assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
+
+  #     assert "Нова" == legal_entity.name
+  #     assert "ACTIVE" == legal_entity.status
+
+  #     assert_security(security, legal_entity.id)
+  #     assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
+
+  #     qry = "SELECT changeset FROM audit_log WHERE resource = 'legal_entities'"
+
+  #     # check that audit_log created in transaction
+  #     assert %{num_rows: 1, rows: [[row]]} = Ecto.Adapters.SQL.query!(PRMRepo, qry, [])
+  #     assert "Нова" == row["name"]
+  #   end
+
+  # test "rollback suspended contracts on legal entity update when edrpou is duplicated" do
+  #   insert(:prm, :legal_entity, edrpou: "10020030")
+  #   legal_entity = insert(:prm, :legal_entity)
+  #   changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
+  #   assert {:error, %Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
+  # end
+  # end
 
   test "settlement validation with invalid settlement" do
     legal_entity_data = get_legal_entity_data()

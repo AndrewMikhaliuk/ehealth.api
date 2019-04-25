@@ -5,6 +5,7 @@ defmodule Core.V2.LegalEntities do
 
   use Core.Search, Application.get_env(:core, :repos)[:read_prm_repo]
 
+  alias Core.API.MediaStorage
   alias Core.EmployeeRequests
   alias Core.Employees.Employee
   alias Core.LegalEntities
@@ -29,9 +30,10 @@ defmodule Core.V2.LegalEntities do
          type <- Map.fetch!(request_params, "type"),
          {:ok, legal_entity} <- get_or_create_by_edrpou_type(edrpou, type),
          :ok <- check_status(legal_entity),
+         signed_content <- params["signed_legal_entity_request"],
          {:ok, _} <- store_signed_content(legal_entity.id, params, headers),
          request_params <- put_mis_verified_state(request_params),
-         {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
+         {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, signed_content, request_params, headers),
          {:ok, client_type_id} <- get_client_type_id(type, headers),
          {:ok, client, client_connection} <-
            OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
@@ -81,9 +83,14 @@ defmodule Core.V2.LegalEntities do
 
   def check_status(_), do: :ok
 
+  def store_signed_content(id, input, headers) do
+    input
+    |> Map.fetch!("signed_legal_entity_request")
+    |> MediaStorage.store_signed_content(:legal_entity_bucket, id, "signed_content", headers)
+  end
+
   defdelegate list(params), to: LegalEntities
-  defdelegate store_signed_content(legal_entity_id, params, headers), to: LegalEntities
-  defdelegate put_legal_entity_to_prm(legal_entity, request_params, headers), to: LegalEntities
+  defdelegate put_legal_entity_to_prm(legal_entity, signed_content, request_params, headers), to: LegalEntities
   defdelegate get_client_type_id(type, headers), to: LegalEntities
   defdelegate prepare_security_data(client, client_connection), to: LegalEntities
   defdelegate prepare_employee_request_data(legal_entity_id, party), to: LegalEntities

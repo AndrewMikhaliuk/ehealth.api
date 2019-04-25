@@ -18,6 +18,7 @@ defmodule Core.LegalEntities.EdrData do
     inserted_by
     updated_by
   )a
+
   @optional_fields ~w(id short_name legal_form)a
 
   @primary_key {:id, :binary_id, autogenerate: true}

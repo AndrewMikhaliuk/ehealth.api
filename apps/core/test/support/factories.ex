@@ -16,6 +16,7 @@ defmodule Core.Factories do
   use Core.PRMFactories.BlackListUserFactory
   use Core.PRMFactories.ContractFactory
   use Core.PRMFactories.ServiceFactory
+  use Core.PRMFactories.EdrDataFactory
 
   # IL
   use Core.ILFactories.RegisterFactory

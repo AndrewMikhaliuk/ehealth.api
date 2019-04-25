@@ -70,6 +70,7 @@ defmodule Core.LegalEntities.LegalEntity do
     field(:edr_verified, :boolean)
     field(:registration_address, :map)
     field(:residence_address, :map)
+    field(:accreditation, :map)
 
     has_one(:medical_service_provider, MedicalServiceProvider, on_replace: :delete, foreign_key: :legal_entity_id)
     has_one(:merged_to_legal_entity, RelatedLegalEntity, foreign_key: :merged_from_id)

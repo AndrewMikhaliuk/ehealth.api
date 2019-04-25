@@ -17,6 +17,7 @@ defmodule Core.LegalEntities do
   alias Core.Employees.Employee
   alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
+  alias Core.LegalEntities.LegalEntityCreator
   alias Core.LegalEntities.License
   alias Core.LegalEntities.Search
   alias Core.LegalEntities.SignedContent
@@ -63,8 +64,7 @@ defmodule Core.LegalEntities do
     addresses
     inserted_by
     updated_by
-    mis_verified
-  )a
+    )a
 
   @optional_fields ~w(
     id
@@ -82,14 +82,12 @@ defmodule Core.LegalEntities do
     website
     beneficiary
     edr_verified
+    mis_verified
   )a
 
   @employee_request_status "NEW"
 
   @status_active LegalEntity.status(:active)
-
-  @mis_verified_verified LegalEntity.mis_verified(:verified)
-  @mis_verified_not_verified LegalEntity.mis_verified(:not_verified)
 
   def list(params \\ %{}) do
     %Search{}
@@ -184,38 +182,6 @@ defmodule Core.LegalEntities do
     |> PRMRepo.update_and_log(author_id)
   end
 
-  def update_with_ops_contract(%Changeset{valid?: true} = changeset, headers) do
-    if suspend_contracts?(changeset, :legal_entity) do
-      transaction_update_with_contract(changeset, headers)
-    else
-      PRMRepo.update_and_log(changeset, get_consumer_id(headers))
-    end
-  end
-
-  def update_with_ops_contract(changeset, _headers), do: changeset
-
-  def transaction_update_with_contract(%Ecto.Changeset{valid?: true} = changeset, headers) do
-    get_contracts_params = %{
-      legal_entity_id: Changeset.get_field(changeset, :id),
-      status: CapitationContract.status(:verified),
-      is_suspended: false
-    }
-
-    PRMRepo.transaction(fn ->
-      {:ok, %Page{entries: contracts}, _} = Contracts.list(get_contracts_params, nil, headers)
-      {:ok, _} = suspend_contracts(contracts)
-
-      with {:ok, result} <- EctoTrail.update_and_log(PRMRepo, changeset, get_consumer_id(headers)) do
-        result
-      else
-        {:error, reason} ->
-          PRMRepo.rollback(reason)
-      end
-    end)
-  end
-
-  def transaction_update_with_contract(changeset, _), do: changeset
-
   defp load_legal_entity(id) do
     %{"id" => id, "is_active" => true}
     |> list()
@@ -226,15 +192,6 @@ defmodule Core.LegalEntities do
     end
   end
 
-  def mis_verify(id, consumer_id) do
-    update_data = %{mis_verified: @mis_verified_verified}
-
-    with {:ok, legal_entity} <- fetch_by_id(id),
-         :ok <- check_mis_verify_transition(legal_entity) do
-      update(legal_entity, update_data, consumer_id)
-    end
-  end
-
   def nhs_verify(%{id: id, nhs_verified: nhs_verified}, consumer_id, check_nhs_reviewed? \\ false) do
     with {:ok, legal_entity} <- fetch_by_id(id),
          :ok <- check_legal_entity_active(legal_entity),
@@ -242,12 +199,6 @@ defmodule Core.LegalEntities do
          :ok <- check_nhs_reviewed(legal_entity, check_nhs_reviewed?) do
       update(legal_entity, %{nhs_verified: nhs_verified}, consumer_id)
     end
-  end
-
-  defp check_mis_verify_transition(%LegalEntity{mis_verified: @mis_verified_not_verified}), do: :ok
-
-  defp check_mis_verify_transition(_) do
-    {:error, {:conflict, "LegalEntity is VERIFIED and cannot be VERIFIED."}}
   end
 
   defp check_nhs_verify_transition(%LegalEntity{nhs_verified: true}, true) do
@@ -272,277 +223,69 @@ defmodule Core.LegalEntities do
 
   def create(params, headers) do
     with {:ok, request_params, legal_entity_code} <- Validator.decode_and_validate(params, headers),
-         edrpou <- Map.fetch!(request_params, "edrpou"),
-         type <- Map.fetch!(request_params, "type"),
-         #  consumer_id <- get_consumer_id(headers),
-         {:ok, legal_entity, _edr_data} <- get_or_create_by_edrpou_type(edrpou, type, legal_entity_code, headers),
-         {:ok, _} <- store_signed_content(legal_entity.id, params, headers),
-         {:ok, legal_entity} <- put_legal_entity_to_prm(legal_entity, request_params, headers),
-         {:ok, client_type_id} <- get_client_type_id(type, headers),
-         {:ok, client, client_connection} <-
-           OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
-         {:ok, security} <- prepare_security_data(client, client_connection),
-         {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
-      {:ok,
-       %{
-         legal_entity: legal_entity,
-         employee_request: employee_request,
-         security: security
-       }}
-    end
-  end
-
-  defp get_or_create_by_edrpou_type(edrpou, type, legal_entity_code, headers) do
-    consumer_id = get_consumer_id(headers)
-    edr_data_header = get_header(headers, "edr-data")
-
-    case list(%{edrpou: edrpou, type: type, status: LegalEntity.status(:active)}) do
-      %Page{entries: []} ->
-        with %EdrData{} = edr_data <- get_edr_data(legal_entity_code, consumer_id, edr_data_header) do
-          {:ok, %LegalEntity{id: UUID.generate()}, edr_data}
-        end
-
-      %Page{entries: [legal_entity]} ->
-        case @read_prm_repo.preload(legal_entity, :edr_data) do
-          %LegalEntity{edr_data: %EdrData{} = edr_data} ->
-            with {:ok, response} <-
-                   @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [edr_data.edr_id]) do
-              data = %{
-                "name" => response["names"]["name"],
-                "short_name" => response["names"]["short"],
-                "public_name" => response["names"]["display"],
-                "legal_form" => response["olf_code"],
-                "kveds" => response["activity_kinds"],
-                "registration_address" => response["address"],
-                "state" => response["state"],
-                "updated_by" => consumer_id
-              }
-
-              edr_data_id = edr_data.id
-
-              if edr_data.state == 1 && response["state"] != 1 do
-                LegalEntity
-                |> where([le], le.edr_data_id == ^edr_data_id)
-                |> PRMRepo.update_all(
-                  set: [status: LegalEntity.status(:suspended), updated_by: consumer_id, updated_at: DateTime.utc_now()]
-                )
-              end
-
-              edr_data =
-                edr_data
-                |> EdrData.changeset(data)
-                |> PRMRepo.update()
-
-              {:ok, legal_entity, edr_data}
-            end
-
-          _ ->
-            with %EdrData{} = edr_data <- get_edr_data(legal_entity_code, consumer_id, edr_data_header) do
-              {:ok, %LegalEntity{id: UUID.generate()}, edr_data}
-            end
-        end
-    end
-  end
-
-  def get_edr_data(%{edrpou: value}, consumer_id, edr_data_header) do
-    do_get_edr_data(value, consumer_id, edr_data_header)
-  end
-
-  def get_edr_data(%{drfo: value}, consumer_id, edr_data_header) do
-    do_get_edr_data(value, consumer_id, edr_data_header)
-  end
-
-  def do_get_edr_data(value, consumer_id, edr_data_header) do
-    result =
-      if Confex.fetch_env!(:core, :legal_entity_edr_verify) do
-        cond do
-          Regex.match?(~r/^[0-9]{8,10}$/, value) ->
-            @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{code: value}])
-
-          Regex.match?(~r/^((?![ЫЪЭЁ])([А-ЯҐЇІЄ])){2}[0-9]{6}$/u, value) ->
-            @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :search_legal_entity, [%{passport: value}])
-
-          true ->
-            Error.dump(%ValidationError{
-              description: "Invalid edrpou",
-              path: "$.data.edrpou"
-            })
-        end
-      else
-        {:ok, Jason.decode!(edr_data_header)}
+         %LegalEntityCreator{} = state <-
+           LegalEntityCreator.get_or_create(
+             request_params,
+             legal_entity_code,
+             headers
+           ) do
+      with {:ok, %LegalEntity{} = legal_entity} <-
+             PRMRepo.transaction(fn ->
+               legal_entity_transaction(state, params["signed_legal_entity_request"], headers)
+             end),
+           {:ok, client_type_id} <- get_client_type_id(Map.fetch!(request_params, "type"), headers),
+           {:ok, client, client_connection} <-
+             OAuth.upsert_client_with_connection(legal_entity, client_type_id, request_params, headers),
+           {:ok, security} <- prepare_security_data(client, client_connection),
+           {:ok, employee_request} <- create_employee_request(legal_entity, request_params) do
+        {:ok,
+         %{
+           legal_entity: legal_entity,
+           employee_request: employee_request,
+           security: security
+         }}
       end
+    end
+  end
 
-    with {:ok, items} <- result do
-      active_items =
-        Enum.reduce(items, 0, fn item, acc ->
-          if item["state"] == 1 do
-            acc + 1
-          else
+  defp legal_entity_transaction(%LegalEntityCreator{} = state, signed_content, headers) do
+    legal_entity =
+      Enum.reduce(state.inserts ++ state.updates, nil, fn fun, acc ->
+        case fun.() do
+          {:ok, %LegalEntity{} = legal_entity} ->
+            save_signed_content(signed_content, legal_entity.id, headers)
+            legal_entity
+
+          {:ok, _} ->
             acc
-          end
-        end)
 
-      cond do
-        active_items > 1 ->
-          Error.dump(%ValidationError{
-            description: "More than 1 active entities in EDR",
-            path: "$.data.edrpou"
-          })
+          {:error, reason} ->
+            PRMRepo.rollback(reason)
+        end
+      end)
 
-        active_items == 1 ->
-          inactive_items_validation_result =
-            items
-            |> Enum.filter(&(Map.get(&1, "state") != 1))
-            |> Enum.reduce_while(:ok, fn item, acc ->
-              case PRMRepo.get_by(EdrData, %{edr_id: item["id"]}) do
-                %EdrData{} = edr_data ->
-                  legal_entities = active_by_edr_data_id(edr_data.id)
+    case legal_entity do
+      {:ok, legal_entity} ->
+        Enum.each(state.update_all, fn fun -> fun.() end)
+        {:ok, legal_entity}
 
-                  if !Enum.empty?(legal_entities) do
-                    {:halt,
-                     Error.dump(%ValidationError{
-                       description: "Legal entity with such edrpou and type already exists",
-                       path: "$.data.edrpou"
-                     })}
-                  else
-                    {:cont, acc}
-                  end
-
-                _ ->
-                  {:cont, acc}
-              end
-            end)
-
-          case inactive_items_validation_result do
-            :ok ->
-              item = Enum.find(items, &(Map.get(&1, "state") == 1))
-
-              with {:ok, response} <-
-                     @rpc_edr_worker.run("edr_api", EdrApi.Rpc, :get_legal_entity_detailed_info, [item["id"]]) do
-                data = %{
-                  "edrpou" => value,
-                  "edr_id" => response["id"],
-                  "name" => response["names"]["name"],
-                  "short_name" => response["names"]["short"],
-                  "public_name" => response["names"]["display"],
-                  "legal_form" => response["olf_code"],
-                  "kveds" => response["activity_kinds"],
-                  "registration_address" => response["address"],
-                  "state" => response["state"],
-                  "updated_by" => consumer_id
-                }
-
-                case @read_prm_repo.get_by(EdrData, %{edr_id: data["edr_id"]}) do
-                  %EdrData{} = edr_data ->
-                    edr_data
-                    |> EdrData.changeset(data)
-                    |> PRMRepo.update()
-
-                  _ ->
-                    data =
-                      Map.merge(data, %{
-                        "inserted_by" => consumer_id,
-                        "id" => UUID.generate()
-                      })
-
-                    %EdrData{}
-                    |> EdrData.changeset(data)
-                    |> PRMRepo.insert()
-                end
-              end
-
-            error ->
-              error
-          end
-
-        true ->
-          Error.dump(%ValidationError{
-            description: "0 active entities in EDR",
-            path: "$.data.edrpou"
-          })
-      end
+      error ->
+        error
     end
   end
 
-  def store_signed_content(id, input, headers) do
+  defp save_signed_content(signed_content, id, headers) do
     filename = DateTime.to_unix(DateTime.utc_now())
 
-    with {:ok, _} <-
-           input
-           |> Map.fetch!("signed_legal_entity_request")
-           |> MediaStorage.store_signed_content(:legal_entity_bucket, id, filename, headers) do
-      SignedContent
-      |> SignedContent.changeset(%{"filename" => to_string(filename), "legal_entity_id" => id})
-      |> PRMRepo.insert()
+    with {:ok, _} <- MediaStorage.store_signed_content(signed_content, :legal_entity_bucket, id, filename, headers),
+         {:ok, _} <-
+           %SignedContent{}
+           |> SignedContent.changeset(%{"filename" => to_string(filename), "legal_entity_id" => id})
+           |> PRMRepo.insert() do
+      :ok
+    else
+      {:error, reason} -> PRMRepo.rollback(reason)
     end
-  end
-
-  def put_legal_entity_to_prm(
-        %LegalEntity{__meta__: %Metadata{state: :built}} = legal_entity,
-        attrs,
-        headers
-      ) do
-    # Creates new Legal Entity in PRM
-    consumer_id = get_consumer_id(headers)
-    client_id = get_client_id(headers)
-
-    creation_data =
-      Map.merge(attrs, %{
-        "status" => @status_active,
-        "is_active" => true,
-        "inserted_by" => consumer_id,
-        "updated_by" => consumer_id,
-        "created_by_mis_client_id" => client_id,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false,
-        "edr_verified" => true
-      })
-
-    %License{}
-    |> License.changeset(
-      Map.merge(attrs["medical_service_provider"], %{inserted_by: consumer_id, updated_by: consumer_id})
-    )
-    |> PRMRepo.insert()
-
-    create(legal_entity, creation_data, consumer_id)
-  end
-
-  def put_legal_entity_to_prm(
-        %LegalEntity{__meta__: %Metadata{state: :loaded}} = legal_entity,
-        attrs,
-        headers
-      ) do
-    # Updates Legal Entity
-    consumer_id = get_consumer_id(headers)
-    # filter immutable data
-    update_data =
-      attrs
-      |> Map.delete("edrpou")
-      |> Map.merge(%{
-        "updated_by" => consumer_id,
-        "is_active" => true,
-        "nhs_verified" => false,
-        "nhs_reviewed" => false,
-        "edr_verified" => true
-      })
-
-    case legal_entity.license do
-      %License{} = license ->
-        license
-        |> License.changeset(Map.merge(attrs["medical_service_provider"], %{updated_by: consumer_id}))
-        |> PRMRepo.update()
-
-      _ ->
-        %License{}
-        |> License.changeset(
-          Map.merge(attrs["medical_service_provider"], %{inserted_by: consumer_id, updated_by: consumer_id})
-        )
-        |> PRMRepo.insert()
-    end
-
-    legal_entity
-    |> changeset(update_data)
-    |> update_with_ops_contract(headers)
   end
 
   def prepare_security_data(client, client_connection) do
@@ -626,6 +369,8 @@ defmodule Core.LegalEntities do
   defp load_references(%Ecto.Query{} = query) do
     query
     |> preload(:license)
+    |> preload(:edr_data)
+    |> preload(:medical_service_provider)
     |> preload(:signed_content_history)
   end
 
@@ -636,9 +381,10 @@ defmodule Core.LegalEntities do
   def changeset(%LegalEntity{} = legal_entity, params) do
     legal_entity
     |> cast(params, @required_fields ++ @optional_fields)
+    |> cast_assoc(:medical_service_provider)
     |> validate_required(@required_fields)
     |> validate_msp_required()
-    |> unique_constraint(:legal_entities_edrpou_type_status_index)
+    |> unique_constraint(:edrpou, name: :legal_entities_edrpou_type_status_index)
   end
 
   defp validate_msp_required(%Ecto.Changeset{changes: %{type: "MSP"}} = changeset) do
