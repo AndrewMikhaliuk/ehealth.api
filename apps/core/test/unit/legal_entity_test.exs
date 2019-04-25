@@ -9,6 +9,7 @@ defmodule Core.Unit.LegalEntityTest do
   import Mox
 
   alias Core.LegalEntities, as: API
+  alias Core.LegalEntities.EdrData
   alias Core.LegalEntities.LegalEntity
   alias Core.LegalEntities.Validator
   alias Core.PRMRepo
@@ -201,21 +202,273 @@ defmodule Core.Unit.LegalEntityTest do
     end
 
     test "success new legal entity and new edr_data" do
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      put_client()
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect_uaddresses_validate()
+      upsert_client_connection()
+      template()
+
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
+        {:ok,
+         %{
+           "id" => edr_id,
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"name" => content["name"], "display" => content["name"]},
+           "olf_code" => content["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(content)
+      assert "38782323" == legal_entity.edrpou
+      assert LegalEntity.status(:active) == legal_entity.status
+      assert content["email"] == legal_entity.email
+      assert content["short_name"] == legal_entity.short_name
+
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+
+      assert_security(security, legal_entity.id)
+      assert %LegalEntity{} = PRMRepo.get(LegalEntity, legal_entity.id)
+      assert %EdrData{} = PRMRepo.get(EdrData, legal_entity.edr_data_id)
     end
 
     test "success new legal entity with existing edr_data" do
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+      edr_data = insert(:prm, :edr_data, edr_id: edr_id)
+
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      put_client()
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect_uaddresses_validate()
+      upsert_client_connection()
+      template()
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
+        {:ok,
+         %{
+           "id" => edr_id,
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"name" => content["name"], "display" => content["name"]},
+           "olf_code" => content["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(content)
+      assert "38782323" == legal_entity.edrpou
+      assert LegalEntity.status(:active) == legal_entity.status
+      assert content["email"] == legal_entity.email
+      assert content["short_name"] == legal_entity.short_name
+
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+
+      edr_data_id = edr_data.id
+      assert_security(security, legal_entity.id)
+      assert %LegalEntity{edr_data_id: ^edr_data_id} = PRMRepo.get(LegalEntity, legal_entity.id)
+      assert %EdrData{edr_id: ^edr_id} = PRMRepo.get(EdrData, legal_entity.edr_data_id)
     end
 
     test "success new legal entity with existing closed edr_data and new active edr_data from edr" do
+      edr_data = insert(:prm, :edr_data, state: 0, legal_entity: nil)
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      put_client()
+
+      expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
+        {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
+      end)
+
+      expect_uaddresses_validate()
+      upsert_client_connection()
+      template()
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_data.edr_id,
+             "state" => 0
+           },
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
+        {:ok,
+         %{
+           "id" => edr_id,
+           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+           "names" => %{"name" => content["name"], "display" => content["name"]},
+           "olf_code" => content["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
+           "state" => 1
+         }}
+      )
+
+      expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
+
+      assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(content)
+      assert "38782323" == legal_entity.edrpou
+      assert LegalEntity.status(:active) == legal_entity.status
+      assert content["email"] == legal_entity.email
+      assert content["short_name"] == legal_entity.short_name
+
+      refute is_nil(legal_entity.nhs_verified)
+      refute legal_entity.nhs_verified
+
+      edr_data_id = edr_data.id
+      assert_security(security, legal_entity.id)
+      assert %LegalEntity{edr_data_id: ^edr_data_id} = PRMRepo.get(LegalEntity, legal_entity.id)
+      assert %EdrData{edr_id: ^edr_id} = PRMRepo.get(EdrData, legal_entity.edr_data_id)
     end
 
     test "fail to create new legal entity with invalid edr response" do
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      expect_uaddresses_validate()
+      expect_search_legal_entity({:error, :timeout})
+
+      assert {:error, {:conflict, "Legal Entity not found in EDR"}} = create_legal_entity(content)
     end
 
     test "fail to create new legal entity with inactive legal entities with references to closed edr_data" do
+      edr_data =
+        insert(:prm, :edr_data,
+          state: 1,
+          legal_entity: build(:legal_entity, status: LegalEntity.status(:suspended))
+        )
+
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      expect_uaddresses_validate()
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{"id" => edr_data.edr_id, "state" => 0},
+           %{"id" => edr_id, "state" => 1}
+         ]}
+      )
+
+      assert {:error,
+              [
+                {%{
+                   description: "Legal entity with such edrpou and type already exists",
+                   params: [],
+                   rule: :invalid
+                 }, "$.data.edrpou"}
+              ]} = create_legal_entity(content)
     end
 
     test "fail to create new legal entity with closed edr_data from edr" do
+      edr_id = DateTime.to_unix(DateTime.utc_now())
+
+      content =
+        "test/data/signed_content.json"
+        |> File.read!()
+        |> Jason.decode!()
+
+      expect_uaddresses_validate()
+
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 0
+           }
+         ]}
+      )
+
+      assert {:error,
+              [
+                {%{
+                   description: "Provided EDRPOU is not active in EDR",
+                   params: [],
+                   rule: :invalid
+                 }, "$.data.edrpou"}
+              ]} = create_legal_entity(content)
     end
   end
 
@@ -228,12 +481,12 @@ defmodule Core.Unit.LegalEntityTest do
     test "success update legal entity references active edr_data" do
       template()
       insert(:prm, :registry)
-      insert(:prm, :legal_entity, edrpou: "10002000")
+      insert(:prm, :edr_data, legal_entity: build(:legal_entity))
       put_client()
 
       update_data =
         Map.merge(get_legal_entity_data(), %{
-          "edrpou" => "37367387",
+          "edrpou" => "38782323",
           "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["86.10"]
@@ -280,8 +533,8 @@ defmodule Core.Unit.LegalEntityTest do
 
       assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
 
-      assert "37367387" == legal_entity.edrpou
-      assert "ACTIVE" == legal_entity.status
+      assert "38782323" == legal_entity.edrpou
+      assert LegalEntity.status(:active) == legal_entity.status
       assert "changed@example.com" == legal_entity.email
       assert "edenlab" == legal_entity.short_name
       assert "Лев Томас" == legal_entity.beneficiary
@@ -307,7 +560,7 @@ defmodule Core.Unit.LegalEntityTest do
 
       update_data =
         Map.merge(get_legal_entity_data(), %{
-          "edrpou" => "37367387",
+          "edrpou" => "38782323",
           "short_name" => "edenlab",
           "email" => "changed@example.com",
           "kveds" => ["86.10"]
@@ -319,114 +572,6 @@ defmodule Core.Unit.LegalEntityTest do
       assert {:error, {:conflict, "Legal Entity not found in EDR"}} = create_legal_entity(update_data)
     end
   end
-
-  # test "CLOSED Legal Entity cannot be updated" do
-  #   insert_dictionaries()
-  #   insert(:prm, :legal_entity, edrpou: "37367387", status: "CLOSED")
-  #   expect_uaddresses_validate()
-
-  #   data = get_legal_entity_data()
-
-  #   expect_search_legal_entity(
-  #     {:ok,
-  #      [
-  #        %{
-  #          "id" => 12345,
-  #          "state" => 1
-  #        }
-  #      ]}
-  #   )
-
-  #   expect_get_legal_entity_detailed_info(
-  #     {:ok,
-  #      %{
-  #        "id" => 12345,
-  #        "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-  #        "names" => %{"name" => data["name"], "display" => data["name"]},
-  #        "olf_code" => data["legal_form"],
-  #        "activity_kinds" => [
-  #          %{
-  #            "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
-  #            "code" => "46.51",
-  #            "is_primary" => false
-  #          }
-  #        ],
-  #        "state" => 1
-  #      }}
-  #   )
-
-  #   # expect_edr_by_code(
-  #   #   {:ok,
-  #   #    %{
-  #   #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-  #   #      "names" => %{"display" => data["name"]},
-  #   #      "olf_code" => data["legal_form"],
-  #   #      "state" => 1
-  #   #    }}
-  #   # )
-
-  #   expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
-
-  #   assert {:error, {:conflict, "LegalEntity can't be updated"}} == create_legal_entity(data)
-  # end
-
-  # describe "update Legal Entity with OPS contract suspend" do
-  #   test "successfully update name" do
-  #     put_client()
-  #     template()
-
-  #     expect(MithrilMock, :get_client_type_by_name, fn _, _ ->
-  #       {:ok, %{"data" => [%{"id" => UUID.generate()}]}}
-  #     end)
-
-  #     insert_dictionaries()
-  #     insert(:prm, :registry)
-  #     edr_data = insert(:prm, :edr_data, legal_entity: build(:legal_entity, edrpou: "37367387"))
-
-  #     update_data = Map.merge(get_legal_entity_data(), %{"name" => "Нова"})
-  #     expect_uaddresses_validate()
-  #     upsert_client_connection()
-
-  #     expect_get_legal_entity_detailed_info(
-  #       {:ok,
-  #        %{
-  #          "id" => edr_data.edr_id,
-  #          "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-  #          "names" => %{"name" => update_data["name"], "display" => update_data["name"]},
-  #          "olf_code" => update_data["legal_form"],
-  #          "activity_kinds" => [
-  #            %{
-  #              "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
-  #              "code" => "46.51",
-  #              "is_primary" => false
-  #            }
-  #          ],
-  #          "state" => 1
-  #        }}
-  #     )
-
-  #     assert {:ok, %{legal_entity: legal_entity, security: security}} = create_legal_entity(update_data)
-
-  #     assert "Нова" == legal_entity.name
-  #     assert "ACTIVE" == legal_entity.status
-
-  #     assert_security(security, legal_entity.id)
-  #     assert 1 == PRMRepo.one(from(l in LegalEntity, select: count("*")))
-
-  #     qry = "SELECT changeset FROM audit_log WHERE resource = 'legal_entities'"
-
-  #     # check that audit_log created in transaction
-  #     assert %{num_rows: 1, rows: [[row]]} = Ecto.Adapters.SQL.query!(PRMRepo, qry, [])
-  #     assert "Нова" == row["name"]
-  #   end
-
-  # test "rollback suspended contracts on legal entity update when edrpou is duplicated" do
-  #   insert(:prm, :legal_entity, edrpou: "10020030")
-  #   legal_entity = insert(:prm, :legal_entity)
-  #   changeset = API.changeset(legal_entity, %{"edrpou" => "10020030"})
-  #   assert {:error, %Changeset{valid?: false}} = API.transaction_update_with_contract(changeset, [])
-  # end
-  # end
 
   test "settlement validation with invalid settlement" do
     legal_entity_data = get_legal_entity_data()
@@ -568,7 +713,7 @@ defmodule Core.Unit.LegalEntityTest do
       {"content-type", "application/json"},
       {"content-length", "7000"},
       {"x-consumer-id", UUID.generate()},
-      {"edrpou", "37367387"}
+      {"edrpou", "38782323"}
     ]
   end
 
@@ -578,7 +723,7 @@ defmodule Core.Unit.LegalEntityTest do
       "signed_content_encoding" => "base64"
     }
 
-    edrpou_signed_content(request_params, "37367387")
+    edrpou_signed_content(request_params, "38782323")
     API.create(request, get_headers())
   end
 

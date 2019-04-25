@@ -56,18 +56,19 @@ defmodule Core.LegalEntities.LegalEntityCreator do
 
           state = suspend_legal_entities(%__MODULE__{}, response, edr_data, consumer_id)
 
+          state = %{
+            state
+            | updates: [
+                fn ->
+                  edr_data
+                  |> EdrData.changeset(data)
+                  |> PRMRepo.update()
+                end
+              ]
+          }
+
           update_changeset(
-            %{
-              state
-              | updates: [
-                  fn ->
-                    edr_data
-                    |> EdrData.changeset(data)
-                    |> PRMRepo.update()
-                  end
-                ],
-                legal_entity: legal_entity
-            },
+            %{state | legal_entity: %{legal_entity | edr_data_id: edr_data.id}},
             params,
             consumer_id,
             client_id
@@ -102,20 +103,21 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     %{
       state
       | inserts:
-          [
-            fn -> LegalEntities.create(legal_entity, creation_data, consumer_id) end,
-            fn ->
-              %License{}
-              |> License.changeset(
-                Map.merge(List.first(attrs["medical_service_provider"]["licenses"]), %{
-                  "inserted_by" => consumer_id,
-                  "updated_by" => consumer_id,
-                  "type" => creation_data["type"]
-                })
-              )
-              |> PRMRepo.insert_and_log(consumer_id)
-            end
-          ] ++ state.inserts
+          state.inserts ++
+            [
+              fn -> LegalEntities.create(legal_entity, creation_data, consumer_id) end,
+              fn ->
+                %License{}
+                |> License.changeset(
+                  Map.merge(List.first(attrs["medical_service_provider"]["licenses"]), %{
+                    "inserted_by" => consumer_id,
+                    "updated_by" => consumer_id,
+                    "type" => creation_data["type"]
+                  })
+                )
+                |> PRMRepo.insert_and_log(consumer_id)
+              end
+            ]
     }
   end
 
@@ -179,7 +181,6 @@ defmodule Core.LegalEntities.LegalEntityCreator do
       end
 
     changes = LegalEntities.changeset(legal_entity, update_data)
-
     %{state | updates: [fn -> PRMRepo.update_and_log(changes, consumer_id) end | state.updates]}
   end
 
@@ -285,7 +286,7 @@ defmodule Core.LegalEntities.LegalEntityCreator do
 
         true ->
           Error.dump(%ValidationError{
-            description: "0 active entities in EDR",
+            description: "Provided EDRPOU is not active in EDR",
             path: "$.data.edrpou"
           })
       end
@@ -325,12 +326,13 @@ defmodule Core.LegalEntities.LegalEntityCreator do
     end
   end
 
-  defp save_edr_data(%__MODULE__{} = state, data, consumer_id) do
+  defp save_edr_data(%__MODULE__{legal_entity: legal_entity} = state, data, consumer_id) do
     case @read_prm_repo.get_by(EdrData, %{edr_id: data["edr_id"]}) do
       %EdrData{} = edr_data ->
         %{
           state
-          | updates: [
+          | legal_entity: %{legal_entity | edr_data_id: edr_data.id},
+            updates: [
               fn ->
                 edr_data
                 |> EdrData.changeset(data)
@@ -349,7 +351,8 @@ defmodule Core.LegalEntities.LegalEntityCreator do
 
         %{
           state
-          | inserts: [
+          | legal_entity: %{legal_entity | edr_data_id: data["id"]},
+            inserts: [
               fn ->
                 %EdrData{}
                 |> EdrData.changeset(data)

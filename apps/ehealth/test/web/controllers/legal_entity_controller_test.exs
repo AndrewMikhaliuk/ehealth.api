@@ -9,12 +9,8 @@ defmodule EHealth.Web.LegalEntityControllerTest do
   import Core.Expectations.RPC
   import Core.Expectations.Signature
 
-  alias Ecto.UUID
-  alias Core.PRMRepo
-  alias Core.Employees.Employee
-  alias Core.LegalEntities
   alias Core.LegalEntities.LegalEntity
-  alias Core.Contracts.CapitationContract
+  alias Ecto.UUID
 
   @legal_entity_type_pharmacy LegalEntity.type(:pharmacy)
   @kveds_allowed_pharmacy "47.73"
@@ -157,13 +153,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
 
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_code(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -194,13 +209,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_code(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -232,13 +266,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_passport(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -268,13 +321,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_passport(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -318,13 +390,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => "123456789"})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_passport(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -357,7 +448,7 @@ defmodule EHealth.Web.LegalEntityControllerTest do
     end
 
     test "update legal entity sign drfo code when edrpou nil", %{conn: conn} do
-      %{edrpou: edrpou} = insert(:prm, :legal_entity)
+      %{edrpou: edrpou} = insert(:prm, :edr_data, legal_entity: build(:legal_entity))
 
       get_client_type_by_name()
       put_client()
@@ -370,13 +461,32 @@ defmodule EHealth.Web.LegalEntityControllerTest do
       legal_entity_type = "MSP"
       legal_entity_params = Map.merge(get_legal_entity_data(), %{"type" => legal_entity_type, "edrpou" => edrpou})
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edr_id = DateTime.to_unix(DateTime.utc_now())
 
-      expect_edr_by_passport(
+      expect_search_legal_entity(
+        {:ok,
+         [
+           %{
+             "id" => edr_id,
+             "state" => 1
+           }
+         ]}
+      )
+
+      expect_get_legal_entity_detailed_info(
         {:ok,
          %{
+           "id" => edr_id,
            "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
+           "names" => %{"name" => legal_entity_params["name"], "display" => legal_entity_params["name"]},
            "olf_code" => legal_entity_params["legal_form"],
+           "activity_kinds" => [
+             %{
+               "name" => "Оптова торгівля комп'ютерами, периферійним устаткованням і програмним забезпеченням",
+               "code" => "46.51",
+               "is_primary" => false
+             }
+           ],
            "state" => 1
          }}
       )
@@ -476,59 +586,71 @@ defmodule EHealth.Web.LegalEntityControllerTest do
              } = resp["error"]
     end
 
-    # test "fail to create legal entity when get EDR API error", %{conn: conn} do
-    #   validate_addresses()
-    #   insert_dictionaries()
+    test "fail to create legal entity when get EDR API error", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
 
-    #   legal_entity_params =
-    #     Map.merge(get_legal_entity_data(), %{
-    #       "type" => @legal_entity_type_pharmacy,
-    #       "kveds" => [@kveds_allowed_pharmacy]
-    #     })
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
 
-    #   legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-    #   edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      expect_search_legal_entity({:error, :timeout})
 
-    #   expect_edr_by_code({:error, :timeout})
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(409)
 
-    #   resp =
-    #     conn
-    #     |> put_req_header("content-type", "application/json")
-    #     |> put_req_header("content-length", "7000")
-    #     |> put_req_header("x-consumer-id", UUID.generate())
-    #     |> put_req_header("edrpou", legal_entity_params["edrpou"])
-    #     |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-    #     |> json_response(409)
+      assert get_in(resp, ~w(error message)) == "Legal Entity not found in EDR"
+    end
 
-    #   assert get_in(resp, ~w(error message)) == "Legal Entity not found in EDR"
-    # end
+    test "fail to create legal entity when EDR API returns response with invalid legal entity status", %{conn: conn} do
+      validate_addresses()
+      insert_dictionaries()
 
-    # test "fail to create legal entity when EDR API returns response with invalid legal entity status", %{conn: conn} do
-    #   validate_addresses()
-    #   insert_dictionaries()
+      legal_entity_params =
+        Map.merge(get_legal_entity_data(), %{
+          "type" => @legal_entity_type_pharmacy,
+          "kveds" => [@kveds_allowed_pharmacy]
+        })
 
-    #   legal_entity_params =
-    #     Map.merge(get_legal_entity_data(), %{
-    #       "type" => @legal_entity_type_pharmacy,
-    #       "kveds" => [@kveds_allowed_pharmacy]
-    #     })
+      legal_entity_params_signed = sign_legal_entity(legal_entity_params)
+      edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      expect_search_legal_entity({:ok, [%{"state" => 0}]})
 
-    #   legal_entity_params_signed = sign_legal_entity(legal_entity_params)
-    #   edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
+      resp =
+        conn
+        |> put_req_header("content-type", "application/json")
+        |> put_req_header("content-length", "7000")
+        |> put_req_header("x-consumer-id", UUID.generate())
+        |> put_req_header("edrpou", legal_entity_params["edrpou"])
+        |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
+        |> json_response(422)
 
-    #   expect_edr_by_code({:ok, %{"state" => 0}})
-
-    #   resp =
-    #     conn
-    #     |> put_req_header("content-type", "application/json")
-    #     |> put_req_header("content-length", "7000")
-    #     |> put_req_header("x-consumer-id", UUID.generate())
-    #     |> put_req_header("edrpou", legal_entity_params["edrpou"])
-    #     |> put(legal_entity_path(conn, :create_or_update), legal_entity_params_signed)
-    #     |> json_response(409)
-
-    #   assert get_in(resp, ~w(error message)) == "Invalid Legal Entity status in EDR"
-    # end
+      assert %{
+               "invalid" => [
+                 %{
+                   "entry" => "$.data.edrpou",
+                   "entry_type" => "json_data_property",
+                   "rules" => [
+                     %{
+                       "description" => "Provided EDRPOU is not active in EDR",
+                       "params" => [],
+                       "rule" => "invalid"
+                     }
+                   ]
+                 }
+               ]
+             } = resp["error"]
+    end
   end
 
   describe "verify legal entities" do

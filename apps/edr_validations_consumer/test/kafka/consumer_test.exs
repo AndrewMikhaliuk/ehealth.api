@@ -38,7 +38,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
 
     test "edr timeout by code" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      expect_edr_by_code({:error, :timeout})
+      # expect_edr_by_code({:error, :timeout})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -52,7 +52,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
 
     test "edr timeout by passport" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity, edrpou: "НЕ111111")
-      expect_edr_by_passport({:error, :timeout})
+      # expect_edr_by_passport({:error, :timeout})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -67,7 +67,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
     test "legal entity not found at edr api" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       error_message = "Legal entity not found"
-      expect_edr_by_code({:error, %{"status_code" => 404, "body" => error_message}})
+      # expect_edr_by_code({:error, %{"status_code" => 404, "body" => error_message}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -82,7 +82,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
     test "edr api token expired" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       error_message = "{\"errors\":[{\"code\":2,\"message\":\"Invalid token.\"}]}"
-      expect_edr_by_code({:error, %{"status_code" => 401, "body" => error_message}})
+      # expect_edr_by_code({:error, %{"status_code" => 401, "body" => error_message}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -97,7 +97,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
     test "edr api page not found" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
       error_message = "{\"errors\":[{\"code\":3,\"message\":\"Sorry, that page does not exist.\"}]}"
-      expect_edr_by_code({:error, %{"status_code" => 404, "body" => error_message}})
+      # expect_edr_by_code({:error, %{"status_code" => 404, "body" => error_message}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
       assert [
@@ -111,7 +111,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
 
     test "failed to get settlement" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      expect_edr_by_code({:ok, %{}})
+      # expect_edr_by_code({:ok, %{}})
       expect_settlement_by_id(nil)
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
@@ -131,7 +131,7 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
 
     test "invalid state" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
-      expect_edr_by_code({:ok, %{"state" => 0}})
+      # expect_edr_by_code({:ok, %{"state" => 0}})
       expect_settlement_by_id({:ok, %{}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
 
@@ -160,9 +160,9 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
     test "edr fields doesn't match" do
       %{id: legal_entity_id} = insert(:prm, :legal_entity)
 
-      expect_edr_by_code(
-        {:ok, %{"state" => 1, "address" => %{"parts" => %{"atu_code" => "12345678"}}, "name" => "foo"}}
-      )
+      # expect_edr_by_code(
+      #   {:ok, %{"state" => 1, "address" => %{"parts" => %{"atu_code" => "12345678"}}, "name" => "foo"}}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "12345600"}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})
@@ -195,15 +195,15 @@ defmodule EdrValidationsConsumer.Kafka.ConsumerTest do
       legal_form = legal_entity.legal_form
       name = legal_entity.name
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "state" => 1,
-           "address" => %{"parts" => %{"atu_code" => "12345678"}},
-           "names" => %{"display" => name},
-           "olf_code" => legal_form
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "state" => 1,
+      #      "address" => %{"parts" => %{"atu_code" => "12345678"}},
+      #      "names" => %{"display" => name},
+      #      "olf_code" => legal_form
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "12345600"}})
       assert :ok = Consumer.consume(%{"legal_entity_id" => legal_entity_id})

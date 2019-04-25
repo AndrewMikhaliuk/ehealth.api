@@ -125,15 +125,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -165,15 +165,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -205,15 +205,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -241,15 +241,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -278,15 +278,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       drfo_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_passport(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_passport(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -326,15 +326,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_passport(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -375,15 +375,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_passport(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -426,15 +426,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
          }}
       end)
 
-      expect_edr_by_passport(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_passport(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -524,7 +524,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code({:error, :timeout})
+      # expect_edr_by_code({:error, :timeout})
 
       resp =
         conn
@@ -546,7 +546,7 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code({:ok, %{"state" => 0}})
+      # expect_edr_by_code({:ok, %{"state" => 0}})
 
       resp =
         conn
@@ -568,15 +568,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6010100000"}},
-           "names" => %{"display" => "TEST"},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6010100000"}},
+      #      "names" => %{"display" => "TEST"},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       resp =
         conn
@@ -615,15 +615,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6010100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6010100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -674,15 +674,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -719,15 +719,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -755,15 +755,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -792,15 +792,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -831,15 +831,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -873,15 +873,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -909,15 +909,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -946,15 +946,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -986,15 +986,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1157,15 +1157,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1194,15 +1194,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       validate_addresses()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1275,15 +1275,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       legal_entity_params_signed = sign_legal_entity(legal_entity_params)
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1323,15 +1323,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1351,15 +1351,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       validate_addresses()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1389,15 +1389,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
       consumer_id = UUID.generate()
       edrpou_signed_content(legal_entity_params, legal_entity_params["edrpou"])
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 
@@ -1423,15 +1423,15 @@ defmodule EHealth.Web.V2.LegalEntityControllerTest do
 
       validate_addresses()
 
-      expect_edr_by_code(
-        {:ok,
-         %{
-           "address" => %{"parts" => %{"atu_code" => "6310100000"}},
-           "names" => %{"display" => legal_entity_params["name"]},
-           "olf_code" => legal_entity_params["legal_form"],
-           "state" => 1
-         }}
-      )
+      # expect_edr_by_code(
+      #   {:ok,
+      #    %{
+      #      "address" => %{"parts" => %{"atu_code" => "6310100000"}},
+      #      "names" => %{"display" => legal_entity_params["name"]},
+      #      "olf_code" => legal_entity_params["legal_form"],
+      #      "state" => 1
+      #    }}
+      # )
 
       expect_settlement_by_id({:ok, %{koatuu: "6300000000"}})
 

@@ -83,6 +83,7 @@ defmodule Core.LegalEntities do
     beneficiary
     edr_verified
     mis_verified
+    edr_data_id
   )a
 
   @employee_request_status "NEW"
